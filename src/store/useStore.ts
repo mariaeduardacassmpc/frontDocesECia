@@ -17,10 +17,10 @@ function save<T>(key: string, data: T[]) {
 }
 
 const defaultProducts: Product[] = [
-  { id: '1', name: 'Brigadeiro Gourmet', category: 'Doces', price: 4.5, cost: 1.5, description: 'Brigadeiro tradicional com granulado belga' },
-  { id: '2', name: 'Bolo de Cenoura', category: 'Bolos', price: 45, cost: 18, description: 'Bolo de cenoura com cobertura de chocolate' },
-  { id: '3', name: 'Trufa de Maracujá', category: 'Doces', price: 6, cost: 2.5, description: 'Trufa artesanal de maracujá' },
-  { id: '4', name: 'Cento de Beijinho', category: 'Festa', price: 80, cost: 30, description: 'Cento de beijinho para festas' },
+  { id: '1', name: 'Brigadeiro Gourmet', category: 'Doces', price: 4.5, cost: 1.5, description: 'Brigadeiro tradicional com granulado belga', stock: 50 },
+  { id: '2', name: 'Bolo de Cenoura', category: 'Bolos', price: 45, cost: 18, description: 'Bolo de cenoura com cobertura de chocolate', stock: 5 },
+  { id: '3', name: 'Trufa de Maracujá', category: 'Doces', price: 6, cost: 2.5, description: 'Trufa artesanal de maracujá', stock: 30 },
+  { id: '4', name: 'Cento de Beijinho', category: 'Festa', price: 80, cost: 30, description: 'Cento de beijinho para festas', stock: 3 },
 ];
 
 export function useProducts() {
