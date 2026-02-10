@@ -6,6 +6,7 @@ export interface Product {
   cost: number;
   description: string;
   image?: string;
+  stock: number;
 }
 
 export interface Sale {
