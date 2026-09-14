@@ -1,6 +1,7 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { Plus, Trash2, TrendingUp, TrendingDown, DollarSign } from "lucide-react";
-import { useSales, useExpenses, useProducts } from "@/store/useStore";
+import { useSales, useExpenses } from "@/store/useStore";
+import { expenseApi } from "@/services/expenseApi";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -21,23 +22,63 @@ const CHART_COLORS = [
 
 export default function Finance() {
   const { sales } = useSales();
-  const { products } = useProducts();
   const { expenses, addExpense, deleteExpense } = useExpenses();
   const { toast } = useToast();
 
   const [desc, setDesc] = useState('');
   const [amount, setAmount] = useState(0);
-  const [category, setCategory] = useState('');
+  const [expenseFilter, setExpenseFilter] = useState<'day' | 'month'>('day');
+  const [financialSummary, setFinancialSummary] = useState({
+    totalRevenue: 0,
+    totalExpenses: 0,
+    totalCost: 0,
+    profit: 0,
+  });
+  const [summaryMonth, setSummaryMonth] = useState(() => {
+    const today = new Date();
+    return `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}`;
+  });
+  const [filterDate, setFilterDate] = useState(() => {
+    const today = new Date();
+    return `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+  });
 
-  const totalRevenue = sales.reduce((s, sale) => s + sale.total, 0);
-  const totalExpenses = expenses.reduce((s, e) => s + e.amount, 0);
-  const totalCost = sales.reduce((sum, s) => sum + s.items.reduce((is, i) => {
-    const product = products.find(p => p.id === i.productId);
-    return is + (product?.cost ?? 0) * i.quantity;
-  }, 0), 0);
-  const profit = totalRevenue - totalExpenses - totalCost;
+  useEffect(() => {
+    const [year, month] = summaryMonth.split('-').map(Number);
+    expenseApi.getFinancial(year, month)
+      .then(summary => setFinancialSummary({
+        totalRevenue: Number(summary.totalRevenue ?? summary.TotalRevenue ?? summary.receitaTotal ?? summary.ReceitaTotal ?? summary.revenue ?? summary.Revenue ?? 0),
+        totalExpenses: Number(summary.totalExpenses ?? summary.TotalExpenses ?? summary.despesasCustos ?? summary.DespesasCustos ?? summary.expenses ?? summary.Expenses ?? 0),
+        totalCost: Number(summary.totalCost ?? summary.TotalCost ?? summary.cost ?? summary.Cost ?? 0),
+        profit: Number(summary.profit ?? summary.Profit ?? summary.lucroLiquido ?? summary.LucroLiquido ?? 0),
+      }))
+      .catch(error => console.error('Erro ao buscar resumo financeiro:', error));
+  }, [summaryMonth]);
 
-  // Monthly bar chart data
+  const filteredExpenses = useMemo(() => {
+    const [year, month, day] = filterDate.split('-').map(Number);
+    const selectedDate = new Date(year, month - 1, day);
+    let startDate = new Date(selectedDate);
+    let endDate = new Date(selectedDate);
+
+    if (expenseFilter === 'month') {
+      startDate = new Date(year, month - 1, 1);
+      endDate = new Date(year, month, 1);
+    } else {
+      endDate.setDate(selectedDate.getDate() + 1);
+    }
+
+    startDate.setHours(0, 0, 0, 0);
+    endDate.setHours(0, 0, 0, 0);
+
+    return expenses
+      .filter(expense => {
+        const expenseDate = new Date(expense.date);
+        return expenseDate >= startDate && expenseDate < endDate;
+      })
+      .sort((a, b) => b.date.localeCompare(a.date));
+  }, [expenses, expenseFilter, filterDate]);
+
   const monthlyData = useMemo(() => {
     const months: Record<string, { receita: number; despesa: number }> = {};
     const monthNames = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
@@ -66,40 +107,117 @@ export default function Finance() {
       .map(([, v]) => ({ name: (v as any).label, Receita: v.receita, Despesas: v.despesa }));
   }, [sales, expenses]);
 
-  // Expense category pie chart
-  const categoryData = useMemo(() => {
-    const cats: Record<string, number> = {};
-    expenses.forEach(e => {
-      cats[e.category] = (cats[e.category] || 0) + e.amount;
-    });
-    if (totalCost > 0) cats['Custo de Produção'] = (cats['Custo de Produção'] || 0) + totalCost;
-    return Object.entries(cats).map(([name, value]) => ({ name, value }));
-  }, [expenses, totalCost]);
-
-  const handleAdd = () => {
+  const handleAdd = async () => {
     if (!desc.trim() || amount <= 0) { toast({ title: "Preencha todos os campos", variant: "destructive" }); return; }
-    addExpense({ date: new Date().toISOString(), description: desc, amount, category: category || 'Geral' });
-    toast({ title: "Despesa adicionada! ✅" });
-    setDesc(''); setAmount(0); setCategory('');
+    try {
+      await addExpense({ date: new Date().toISOString(), description: desc, amount });
+      toast({ title: "Despesa adicionada! ✅" });
+      setDesc(''); setAmount(0);
+    } catch (error) {
+      toast({
+        title: error instanceof Error ? error.message : 'Erro ao adicionar despesa',
+        variant: "destructive",
+      });
+    }
   };
 
   const fmt = (v: number) => v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-display font-bold">Financeiro</h1>
-        <p className="text-muted-foreground">Controle suas finanças 💰</p>
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+        <div>
+          <h1 className="text-3xl font-display font-bold">Financeiro</h1>
+          <p className="text-muted-foreground">Controle suas finanças</p>
+        </div>
+        <div className="w-full sm:w-48">
+          <Label htmlFor="summary-month">Mês dos indicadores</Label>
+          <Input
+            id="summary-month"
+            type="month"
+            value={summaryMonth}
+            onChange={e => setSummaryMonth(e.target.value)}
+            className="mt-1 bg-white text-black"
+          />
+        </div>
       </div>
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-        <StatCard title="Receita Total" value={fmt(totalRevenue)} icon={<TrendingUp className="h-6 w-6" />} color="secondary" />
-        <StatCard title="Despesas + Custos" value={fmt(totalExpenses + totalCost)} icon={<TrendingDown className="h-6 w-6" />} color="accent" />
-        <StatCard title="Lucro Líquido" value={fmt(profit)} icon={<DollarSign className="h-6 w-6" />} color={profit >= 0 ? 'info' : 'primary'} />
+        <StatCard title="Receita Total" value={fmt(financialSummary.totalRevenue)} icon={<TrendingUp className="h-6 w-6" />} color="secondary" />
+        <StatCard title="Despesas + Custos" value={fmt(financialSummary.totalExpenses + financialSummary.totalCost)} icon={<TrendingDown className="h-6 w-6" />} color="accent" />
+        <StatCard title="Lucro Líquido" value={fmt(financialSummary.profit)} icon={<DollarSign className="h-6 w-6" />} color={financialSummary.profit >= 0 ? 'info' : 'primary'} />
       </div>
 
-      {/* Charts */}
-      <div className="grid gap-6 lg:grid-cols-2">
+      <Card className="shadow-card border-0 w-full">
+        <CardHeader><CardTitle className="font-display">Nova Despesa</CardTitle></CardHeader>
+        <CardContent className="space-y-4">
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+            <div><Label>Descrição</Label><Input value={desc} onChange={e => setDesc(e.target.value)} placeholder="Ex: Ingredientes, Embalagens" /></div>
+            <div><Label>Valor (R$)</Label><Input type="number" step="0.01" value={amount || ''} onChange={e => setAmount(parseFloat(e.target.value) || 0)} /></div>
+          </div>
+          <Button onClick={handleAdd} className="w-full bg-secondary text-secondary-foreground hover:bg-secondary/90 gap-2">
+            <Plus className="h-4 w-4" /> Adicionar Despesa
+          </Button>
+        </CardContent>
+      </Card>
+
+      <div className="grid gap-6 xl:grid-cols-[1.1fr_1.7fr]">
+        <Card className="shadow-card border-0">
+          <CardHeader className="space-y-4">
+            <CardTitle className="font-display">Despesas Recentes</CardTitle>
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+              <div>
+                <Label htmlFor="expense-filter">Período</Label>
+                <select
+                  id="expense-filter"
+                  value={expenseFilter}
+                  onChange={e => setExpenseFilter(e.target.value as 'day' | 'month')}
+                  className="mt-1 flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                >
+                  <option value="day">Dia</option>
+                  <option value="month">Mês</option>
+                </select>
+              </div>
+              <div>
+                <Label htmlFor="expense-filter-date">Data</Label>
+                <Input
+                  id="expense-filter-date"
+                  type="date"
+                  value={filterDate}
+                  onChange={e => setFilterDate(e.target.value)}
+                  className="mt-1"
+                />
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent>
+            {expenses.length === 0 ? (
+              <p className="text-muted-foreground text-sm py-8 text-center">Nenhuma despesa registrada.</p>
+            ) : filteredExpenses.length === 0 ? (
+              <p className="text-muted-foreground text-sm py-8 text-center">Nenhuma despesa encontrada neste período.</p>
+            ) : (
+              <div className="space-y-3 max-h-[400px] overflow-y-auto pr-1">
+                {filteredExpenses.map(exp => (
+                  <div key={exp.id} className="flex items-center justify-between rounded-lg bg-muted/50 p-3">
+                    <div>
+                      <p className="font-semibold text-sm">{exp.description}</p>
+                      <p className="text-xs text-muted-foreground">
+                        {new Date(exp.date).toLocaleDateString('pt-BR')}
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="font-display font-bold text-destructive">-{fmt(exp.amount)}</span>
+                      <Button variant="ghost" size="icon" className="h-6 w-6 text-destructive" onClick={() => deleteExpense(exp.id)}>
+                        <Trash2 className="h-3 w-3" />
+                      </Button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
         <Card className="shadow-card border-0">
           <CardHeader><CardTitle className="font-display text-lg">Receita vs Despesas</CardTitle></CardHeader>
           <CardContent>
@@ -119,73 +237,8 @@ export default function Finance() {
             )}
           </CardContent>
         </Card>
-
-        <Card className="shadow-card border-0">
-          <CardHeader><CardTitle className="font-display text-lg">Despesas por Categoria</CardTitle></CardHeader>
-          <CardContent>
-            {categoryData.length === 0 ? (
-              <p className="text-muted-foreground text-sm py-8 text-center">Nenhuma despesa registrada ainda.</p>
-            ) : (
-              <ResponsiveContainer width="100%" height={260}>
-                <PieChart>
-                  <Pie data={categoryData} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={90} label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`} fontSize={11}>
-                    {categoryData.map((_, i) => (
-                      <Cell key={i} fill={CHART_COLORS[i % CHART_COLORS.length]} />
-                    ))}
-                  </Pie>
-                  <Tooltip formatter={(v: number) => fmt(v)} />
-                </PieChart>
-              </ResponsiveContainer>
-            )}
-          </CardContent>
-        </Card>
       </div>
 
-      <div className="grid gap-6 lg:grid-cols-2">
-        {/* Add expense */}
-        <Card className="shadow-card border-0">
-          <CardHeader><CardTitle className="font-display">Nova Despesa</CardTitle></CardHeader>
-          <CardContent className="space-y-4">
-            <div><Label>Descrição</Label><Input value={desc} onChange={e => setDesc(e.target.value)} placeholder="Ex: Ingredientes, Embalagens" /></div>
-            <div className="grid grid-cols-2 gap-4">
-              <div><Label>Valor (R$)</Label><Input type="number" step="0.01" value={amount || ''} onChange={e => setAmount(parseFloat(e.target.value) || 0)} /></div>
-              <div><Label>Categoria</Label><Input value={category} onChange={e => setCategory(e.target.value)} placeholder="Ex: Ingredientes" /></div>
-            </div>
-            <Button onClick={handleAdd} className="w-full bg-secondary text-secondary-foreground hover:bg-secondary/90 gap-2">
-              <Plus className="h-4 w-4" /> Adicionar Despesa
-            </Button>
-          </CardContent>
-        </Card>
-
-        {/* Expenses list */}
-        <Card className="shadow-card border-0">
-          <CardHeader><CardTitle className="font-display">Despesas Recentes</CardTitle></CardHeader>
-          <CardContent>
-            {expenses.length === 0 ? (
-              <p className="text-muted-foreground text-sm py-8 text-center">Nenhuma despesa registrada.</p>
-            ) : (
-              <div className="space-y-3 max-h-[400px] overflow-y-auto pr-1">
-                {[...expenses].sort((a, b) => b.date.localeCompare(a.date)).map(exp => (
-                  <div key={exp.id} className="flex items-center justify-between rounded-lg bg-muted/50 p-3">
-                    <div>
-                      <p className="font-semibold text-sm">{exp.description}</p>
-                      <p className="text-xs text-muted-foreground">
-                        {new Date(exp.date).toLocaleDateString('pt-BR')} · {exp.category}
-                      </p>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <span className="font-display font-bold text-destructive">-{fmt(exp.amount)}</span>
-                      <Button variant="ghost" size="icon" className="h-6 w-6 text-destructive" onClick={() => deleteExpense(exp.id)}>
-                        <Trash2 className="h-3 w-3" />
-                      </Button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </CardContent>
-        </Card>
-      </div>
     </div>
   );
 }

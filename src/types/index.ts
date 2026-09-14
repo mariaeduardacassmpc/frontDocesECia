@@ -1,5 +1,6 @@
 export interface Product {
-  id: string;
+  id: number;
+  active?: boolean;
   name: string;
   category: string;
   price: number;
@@ -16,6 +17,7 @@ export interface Sale {
   total: number;
   paymentMethod: 'dinheiro' | 'pix' | 'cartao' | 'outro';
   customerName?: string;
+  customerId?: number;
 }
 
 export interface SaleItem {
@@ -31,5 +33,21 @@ export interface Expense {
   date: string;
   description: string;
   amount: number;
-  category: string;
+}
+
+export interface User {
+  id: number;
+  email: string;
+  password: string;
+}
+
+export interface Customer {
+  id: number;
+  active?: boolean;
+  name: string;
+  phone: string;
+  city: string;
+  email: string;
+  address: string;
+  obs: string;
 }
