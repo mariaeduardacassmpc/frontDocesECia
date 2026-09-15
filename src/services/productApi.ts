@@ -20,6 +20,39 @@ export const productApi = {
       filename: filename ? decodeURIComponent(filename) : undefined,
     };
   },
+    
+  async getCategories(): Promise<string[]> {
+    const response = await apiFetch(`${API_URL}/api/Category`);
+
+    if (!response.ok) {
+      throw new Error('Erro ao buscar categorias');
+    }
+
+    const data = await response.json();
+
+    const items =
+      Array.isArray(data)
+        ? data
+        : data?.data ??
+          data?.Data ??
+          data?.categories ??
+          data?.Categories ??
+          [];
+
+    return items
+      .map((item: any) =>
+        typeof item === 'string'
+          ? item.trim()
+          : String(
+              item?.Name ??
+              item?.name ??
+              item?.CategoryName ??
+              item?.categoryName ??
+              ''
+            ).trim()
+      )
+      .filter(Boolean);
+  },
 
   async getAll(): Promise<any[]> {
     const response = await apiFetch(`${API_URL}/api/Product`);
@@ -31,21 +64,6 @@ export const productApi = {
     const data = await response.json();
     if (Array.isArray(data)) return data;
     return data?.data || data?.Data || data?.products || data?.Products || [];
-  },
-
-  async getAllCategories(): Promise<string[]> {
-    const items = await this.getAll();
-
-    if (!Array.isArray(items)) return [];
-
-    return Array.from(new Set(
-      items
-        .map((item: any) => {
-          if (typeof item === 'string') return item.trim();
-          return String(item?.Categoria || item?.categoria || item?.Category || item?.category || '').trim();
-        })
-        .filter(Boolean)
-    ));
   },
 
     async create(p: Omit<Product, 'id'>): Promise<void> {

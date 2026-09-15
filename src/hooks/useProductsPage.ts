@@ -22,7 +22,7 @@ export function useProductsPage() {
   useEffect(() => {
     let active = true;
 
-    productApi.getAllCategories()
+    productApi.getCategories()
       .then((data) => {
         if (active) setCategories(data);
       })
