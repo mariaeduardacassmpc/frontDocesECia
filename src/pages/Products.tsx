@@ -146,26 +146,34 @@ export default function Products() {
           </CardContent>
         </Card>
       )}
-      <div className="flex gap-3 flex-wrap">
-        <div className="relative max-w-sm flex-1">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input placeholder="Buscar produto" value={search} onChange={e => setSearch(e.target.value)} className="bg-white text-black pl-10" />
-        </div>
-          <select
-            value={categoryFilter}
-            onChange={e => setCategoryFilter(e.target.value)}
-            className="px-3 py-2 border border-input rounded-md text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary"
-            style={{ backgroundColor: '#ffffff', color: '#000000' }}
-          >
+    <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center">
+      <div className="relative w-full sm:max-w-sm">
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+        <Input
+          placeholder="Buscar produto"
+          value={search}
+          onChange={e => setSearch(e.target.value)}
+          className="w-full bg-white text-black pl-10"
+        />
+      </div>
+
+      <div className="grid grid-cols-2 gap-3 sm:flex sm:flex-wrap">
+        <select
+          value={categoryFilter}
+          onChange={e => setCategoryFilter(e.target.value)}
+          className="w-full sm:w-auto px-3 py-2 border border-input rounded-md text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary"
+          style={{ backgroundColor: '#ffffff', color: '#000000' }}
+        >
           <option value="">Todas as categorias</option>
           {categories.map(cat => (
             <option key={cat} value={cat}>{cat}</option>
           ))}
         </select>
+
         <select
           value={statusFilter}
           onChange={e => setStatusFilter(e.target.value as 'all' | 'active' | 'inactive')}
-          className="px-3 py-2 border border-input rounded-md text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary"
+          className="w-full sm:w-auto px-3 py-2 border border-input rounded-md text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary"
           style={{ backgroundColor: '#ffffff', color: '#000000' }}
         >
           <option value="all">Todos os status</option>
@@ -173,6 +181,8 @@ export default function Products() {
           <option value="inactive">Inativos</option>
         </select>
       </div>
+    </div>
+
       {filtered.length === 0 ? (
         <Card className="border-dashed border-2">
           <CardContent className="py-12 text-center text-muted-foreground">
