@@ -112,7 +112,6 @@ export default function Login() {
             </div>
             <Button type="submit" className="h-12 w-full text-base font-semibold" disabled={isSubmitting}>
               Entrar
-              <ArrowRight className="ml-2 h-4 w-4" />
             </Button>
           </form>
         </div>

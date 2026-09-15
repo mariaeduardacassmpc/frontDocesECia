@@ -132,9 +132,9 @@ export const customerApi = {
 
   async toggleActive(id: number): Promise<Customer> {
     const response = await apiFetch(
-      `${API_URL}/api/Customer/toggleActive/${id}`,
+      `${API_URL}/api/Customer/${id}/active`,
       {
-        method: "PUT",
+        method: "PATCH",
       }
     );
 
