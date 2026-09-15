@@ -101,9 +101,14 @@ export default function Login() {
                   {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
                 </button>
               </div>
-              <button type="button" className="text-sm text-primary hover:underline">
-                Esqueci minha senha
-              </button>
+            <div className="flex justify-end">
+            <button
+              type="button"
+              className="text-sm font-bold text-primary hover:text-primary/80 hover:underline"
+            >
+              Esqueci minha senha?
+            </button>
+          </div>
             </div>
             <Button type="submit" className="h-12 w-full text-base font-semibold" disabled={isSubmitting}>
               Entrar

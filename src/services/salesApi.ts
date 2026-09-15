@@ -103,54 +103,50 @@ export const salesApi = {
           [];
   },
 
-  async update(id: number, sale: any): Promise<any> {
-    const backendSale = {
+async update(id: number, sale: any): Promise<any> {
+  const backendSale = {
+    SaleId: id,
+    Description:
+      sale.items?.map((item: any) => item.productName).join(", ") || "Venda",
+
+    CustomerId: sale.customerId ?? 0,
+
+    PaymentMethod: sale.paymentMethod,
+    TotalAmount: sale.total,
+    SaleDate: sale.date,
+
+    Items: (sale.items ?? []).map((item: any) => ({
+      SaleItemId: item.saleItemId ?? 0,
       SaleId: id,
-      Description:
-        sale.items?.map((item: any) => item.productName).join(', ') || 'Venda',
-      CustomerId: sale.customerId ?? 0,
-      Customer: {
-        CustomerId: sale.customerId ?? 0,
-        Name: sale.customerName ?? 'Cliente não informado',
-        Phone: '',
-        City: '',
-        Address: '',
-        Active: true,
-        Email: '',
-        Obs: '',
-      },
-      PaymentMethod: sale.paymentMethod,
-      TotalAmount: sale.total,
-      SaleDate: sale.date,
-      Items: (sale.items ?? []).map((item: any) => ({
-        SaleItemId: 0,
-        SaleId: id,
-        ProductId: Number(item.productId),
-        Quantity: Number(item.quantity),
-        UnitPrice: Number(item.unitPrice),
-      })),
-    };
+      ProductId: Number(item.productId),
+      Quantity: Number(item.quantity),
+      UnitPrice: Number(item.unitPrice),
+    })),
+  };
 
-    const response = await apiFetch(`${SALES_URL}/${id}`, {
-      method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(backendSale),
-    });
+  const response = await apiFetch(`${SALES_URL}/${id}`, {
+    method: "PUT",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(backendSale),
+  });
 
-    if (!response.ok) {
-      const details = await response.text();
-      throw new Error(details || `Erro ao atualizar venda (${response.status})`);
-    }
+  if (!response.ok) {
+    const details = await response.text();
+    throw new Error(
+      details || `Erro ao atualizar venda (${response.status})`
+    );
+  }
 
-    const responseText = await response.text();
-    try {
-      return responseText ? JSON.parse(responseText) : undefined;
-    } catch {
-      return responseText;
-    }
-  },
+  const responseText = await response.text();
+
+  try {
+    return responseText ? JSON.parse(responseText) : undefined;
+  } catch {
+    return responseText;
+  }
+},
 
   async delete(id: number): Promise<void> {
     const response = await apiFetch(`${SALES_URL}/${id}`, {
