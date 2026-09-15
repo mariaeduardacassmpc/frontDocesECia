@@ -389,201 +389,300 @@ const {
         </Card>
       </div>
 
-    <Dialog open={detailsOpen} onOpenChange={setDetailsOpen}>
-  <DialogContent className="max-h-[90vh] w-[calc(100%-1rem)] overflow-y-auto sm:max-w-2xl">
-    <DialogHeader>
-      <DialogTitle className="font-display text-2xl">
-        Detalhes da Venda
-      </DialogTitle>
-    </DialogHeader>
+   <Dialog open={detailsOpen} onOpenChange={setDetailsOpen}>
+    <DialogContent className="max-h-[90vh] w-[calc(100%-1rem)] overflow-y-auto bg-[#fbf8f2] sm:w-full sm:max-w-md">
+      <DialogHeader>
+        <DialogTitle className="font-display text-xl">
+          Detalhes da Venda
+        </DialogTitle>
+      </DialogHeader>
 
-    {selectedSale && (
-      <div className="space-y-5">
-        {/* Informações da venda */}
-        <div className="grid grid-cols-2 gap-4">
-          <div className="rounded-lg bg-muted/40 p-4">
-            <p className="mb-1 text-xs font-medium text-muted-foreground">
-              Data
-            </p>
-            <p className="text-base font-medium">
-              {new Date(selectedSale.date).toLocaleString('pt-BR')}
-            </p>
+      {selectedSale && (
+        <div className="space-y-4">
+          {/* Cliente */}
+          <div>
+            <Label>Cliente</Label>
+
+            <div className="mt-1 rounded-md border border-input bg-white px-3 py-2 text-sm text-black">
+              {selectedSale.customerName || "Cliente não informado"}
+            </div>
           </div>
 
-          <div className="rounded-lg bg-muted/40 p-4">
-            <p className="mb-1 text-xs font-medium text-muted-foreground">
-              Pagamento
-            </p>
-            <p className="text-base font-medium">
-              {paymentLabels[selectedSale.paymentMethod]}
-            </p>
-          </div>
+          {/* Produtos */}
+          <div>
+            <Label>Produtos</Label>
 
-          <div className="col-span-2 rounded-lg bg-muted/40 p-4">
-            <p className="mb-1 text-xs font-medium text-muted-foreground">
-              Cliente
-            </p>
-            <p className="text-base font-medium">
-              {selectedSale.customerName || 'Cliente não informado'}
-            </p>
-          </div>
-        </div>
-
-        {/* Produtos */}
-        <div className="overflow-hidden rounded-lg border border-border">
-          <div className="border-b border-border bg-muted/30 px-4 py-3">
-            <h3 className="font-display text-base font-semibold">
-              Itens da venda
-            </h3>
-          </div>
-
-          <div className="divide-y divide-border">
-            {selectedSale.items.map((item) => (
-              <div
-                key={`${selectedSale.id}-${item.productId}`}
-                className="flex items-center justify-between gap-4 px-4 py-4"
-              >
-                <div className="min-w-0">
-                  <p className="text-base font-semibold">
-                    {item.productName}
-                  </p>
-
-                  <p className="mt-1 text-sm text-muted-foreground">
-                    {item.quantity} x {fmt(item.unitPrice)}
-                  </p>
-                </div>
-
-                <p className="shrink-0 text-base font-bold text-secondary">
-                  {fmt(item.subtotal)}
+            <div className="mt-1 space-y-2 rounded-md bg-white p-3">
+              {selectedSale.items.length === 0 ? (
+                <p className="text-sm text-muted-foreground">
+                  Nenhum produto na venda.
                 </p>
-              </div>
-            ))}
-          </div>
-        </div>
+              ) : (
+                selectedSale.items.map((item) => (
+                  <div
+                    key={`${selectedSale.id}-${item.productId}`}
+                    className="flex items-center justify-between gap-3 text-sm"
+                  >
+                    <div className="min-w-0">
+                      <span className="font-medium">
+                        {item.productName}
+                      </span>
 
-        {/* Total */}
-        <div className="flex items-center justify-between rounded-lg border-t border-border pt-4">
-          <span className="font-display text-lg font-semibold">
-            Total da venda
-          </span>
+                      <span className="ml-1 text-muted-foreground">
+                        x{item.quantity}
+                      </span>
+                    </div>
 
-          <span className="font-display text-2xl font-bold text-secondary">
-            {fmt(selectedSale.total)}
-          </span>
-        </div>
-      </div>
-    )}
-  </DialogContent>
-</Dialog>
-
-      <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
-        <DialogContent className="max-h-[90vh] w-[calc(100%-1rem)] overflow-y-auto bg-[#fbf8f2] sm:w-full sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle className="font-display text-xl">Editar Venda</DialogTitle>
-          </DialogHeader>
-
-          <div className="space-y-4">
-            <div>
-              <Label>Cliente</Label>
-              <Select
-                value={editCustomerId?.toString() ?? "none"}
-                onValueChange={(value) => setEditCustomerId(value === "none" ? null : Number(value))}
-              >
-                <SelectTrigger className="border border-input bg-white text-black"><SelectValue placeholder="Selecione o cliente" /></SelectTrigger>
-                <SelectContent className="bg-popover border z-50">
-                  <SelectItem value="none">Sem cliente</SelectItem>
-                  {saleCustomers.map((customer) => (
-                    <SelectItem key={customer.id} value={customer.id.toString()}>
-                      {customer.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="flex flex-col gap-2 sm:flex-row sm:items-end">
-              <div className="relative flex-1">
-                <Label>Adicionar produto</Label>
-                <Input
-                  value={editProductSearch}
-                  onChange={event => {
-                    setEditProductSearch(event.target.value);
-                    setEditSelectedProductId(null);
-                    setShowEditProductList(true);
-                  }}
-                  onFocus={() => setShowEditProductList(true)}
-                  onBlur={() => setTimeout(() => setShowEditProductList(false), 200)}
-                  placeholder="Digite o nome do produto"
-                  className="border border-input bg-white text-black"
-                />
-                {showEditProductList && editFilteredProducts.length > 0 && (
-                  <div className="absolute z-50 mt-1 max-h-48 w-full overflow-y-auto rounded-md border bg-popover shadow-lg">
-                    {editFilteredProducts.map(product => (
-                      <div
-                        key={product.id}
-                        onMouseDown={event => {
-                          event.preventDefault();
-                          setEditProductSearch(product.name);
-                          setEditSelectedProductId(product.id);
-                          setShowEditProductList(false);
-                        }}
-                        className="cursor-pointer px-3 py-2 text-sm hover:bg-accent"
-                      >
-                        <div className="font-medium">{product.name}</div>
-                        <div className="text-xs text-muted-foreground">{product.category} - {fmt(product.price)}</div>
-                      </div>
-                    ))}
+                    <span className="shrink-0 font-semibold">
+                      {fmt(item.subtotal)}
+                    </span>
                   </div>
-                )}
-              </div>
-              <div className="w-full sm:w-20">
-                <Label>Qtd</Label>
-                <Input type="number" min={1} value={editQuantity} onChange={event => setEditQuantity(parseInt(event.target.value) || 1)} className="border border-input bg-white text-black" />
-              </div>
-              <Button type="button" onClick={addEditItem} size="icon" className="w-full bg-secondary text-secondary-foreground hover:bg-secondary/90 sm:w-10">
-                <Plus className="h-4 w-4" />
-              </Button>
-            </div>
+                ))
+              )}
 
-            <div className="space-y-2 rounded-md bg-white p-3">
-              {editItems.length === 0 ? (
-                <p className="text-sm text-muted-foreground">Nenhum produto na venda.</p>
-              ) : editItems.map(item => (
-                <div key={item.productId} className="flex items-center justify-between text-sm">
-                  <span><span className="font-medium">{item.productName}</span> x{item.quantity}</span>
-                  <div className="flex items-center gap-2">
-                    <span className="font-semibold">{fmt(item.subtotal)}</span>
-                    <Button type="button" variant="ghost" size="icon" className="h-6 w-6 text-destructive" onClick={() => removeEditItem(item.productId)}>
-                      <Trash2 className="h-3 w-3" />
-                    </Button>
-                  </div>
-                </div>
-              ))}
               <div className="flex justify-between border-t border-border pt-2 font-bold">
-                <span>Total</span><span className="text-secondary">{editTotal}</span>
+                <span>Total</span>
+
+                <span className="text-secondary">
+                  {fmt(selectedSale.total)}
+                </span>
               </div>
             </div>
+          </div>
 
-            <div>
-              <Label>Forma de Pagamento</Label>
-              <Select value={editPaymentMethod} onValueChange={(value) => setEditPaymentMethod(value as Sale["paymentMethod"])}>
-                <SelectTrigger className="border border-input bg-white text-black"><SelectValue /></SelectTrigger>
-                <SelectContent className="bg-popover border z-50">
-                  <SelectItem value="pix">Pix</SelectItem>
-                  <SelectItem value="dinheiro">Dinheiro</SelectItem>
-                  <SelectItem value="cartao">Cartão</SelectItem>
-                  <SelectItem value="outro">Outro</SelectItem>
-                </SelectContent>
-              </Select>
+          {/* Forma de pagamento */}
+          <div>
+            <Label>Forma de Pagamento</Label>
+
+            <div className="mt-1 rounded-md border border-input bg-white px-3 py-2 text-sm text-black">
+              {paymentLabels[selectedSale.paymentMethod]}
             </div>
+          </div>
+
+          {/* Data */}
+          <div>
+            <Label>Data da Venda</Label>
+
+            <div className="mt-1 rounded-md border border-input bg-white px-3 py-2 text-sm text-black">
+              {new Date(selectedSale.date).toLocaleString("pt-BR")}
+            </div>
+          </div>
 
           <DialogFooter>
-              <Button variant="outline" onClick={() => setEditDialogOpen(false)}>Cancelar</Button>
-              <Button onClick={saveSaleEdit} className="bg-secondary text-secondary-foreground hover:bg-secondary/90">Salvar</Button>
+            <Button
+              variant="outline"
+              onClick={() => setDetailsOpen(false)}
+            >
+              Fechar
+            </Button>
           </DialogFooter>
+        </div>
+      )}
+    </DialogContent>
+  </Dialog>
+
+  <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
+    <DialogContent className="max-h-[90vh] w-[calc(100%-1rem)] overflow-y-auto bg-[#fbf8f2] sm:w-full sm:max-w-md">
+      <DialogHeader>
+        <DialogTitle className="font-display text-xl">
+          Editar Venda
+        </DialogTitle>
+      </DialogHeader>
+
+      <div className="space-y-4">
+        {/* Cliente */}
+        <div>
+          <Label>Cliente</Label>
+
+          <Select
+            value={editCustomerId?.toString() ?? "none"}
+            onValueChange={(value) =>
+              setEditCustomerId(value === "none" ? null : Number(value))
+            }
+          >
+            <SelectTrigger className="border border-input bg-white text-black">
+              <SelectValue placeholder="Selecione o cliente" />
+            </SelectTrigger>
+
+            <SelectContent className="bg-popover border z-50">
+              <SelectItem value="none">
+                Sem cliente
+              </SelectItem>
+
+              {saleCustomers.map((customer) => (
+                <SelectItem
+                  key={customer.id}
+                  value={customer.id.toString()}
+                >
+                  {customer.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+
+        {/* Adicionar produto */}
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-end">
+          <div className="relative flex-1">
+            <Label>Adicionar produto</Label>
+
+            <Input
+              value={editProductSearch}
+              onChange={(e) => {
+                setEditProductSearch(e.target.value);
+                setShowEditProductList(true);
+                setEditSelectedProductId(null);
+              }}
+              onFocus={() => setShowEditProductList(true)}
+              onBlur={() =>
+                setTimeout(() => setShowEditProductList(false), 200)
+              }
+              placeholder="Digite o nome do produto"
+              className="border border-input bg-white text-black"
+            />
+
+            {showEditProductList && editFilteredProducts.length > 0 && (
+              <div className="absolute z-50 mt-1 max-h-60 w-full overflow-y-auto rounded-md border bg-popover shadow-lg">
+                {editFilteredProducts.map((product) => (
+                  <div
+                    key={product.id}
+                    onMouseDown={(e) => {
+                      e.preventDefault();
+
+                      setEditSelectedProductId(product.id);
+                      setEditProductSearch(product.name);
+                      setShowEditProductList(false);
+                    }}
+                    className="cursor-pointer px-3 py-2 text-sm hover:bg-accent"
+                  >
+                    <div className="font-medium">
+                      {product.name}
+                    </div>
+
+                    <div className="text-xs text-muted-foreground">
+                      {product.category} - {fmt(product.price)}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
-        </DialogContent>
-      </Dialog>
+
+          {/* Quantidade */}
+          <div className="w-full sm:w-20">
+            <Label>Qtd</Label>
+
+            <Input
+              type="number"
+              min={1}
+              value={editQuantity}
+              onChange={(e) =>
+                setEditQuantity(parseInt(e.target.value) || 1)
+              }
+              className="border border-input bg-white text-black"
+            />
+          </div>
+
+          {/* Adicionar */}
+          <Button
+            onClick={addEditItem}
+            size="icon"
+            className="w-full shrink-0 bg-secondary text-secondary-foreground hover:bg-secondary/90 sm:w-10"
+          >
+            <Plus className="h-4 w-4" />
+          </Button>
+        </div>
+
+        {/* Produtos da venda */}
+        <div className="space-y-2 rounded-md bg-white p-3">
+          {editItems.length === 0 ? (
+            <p className="text-sm text-muted-foreground">
+              Nenhum produto na venda.
+            </p>
+          ) : (
+            editItems.map((item) => (
+              <div
+                key={item.productId}
+                className="flex items-center justify-between gap-2 text-sm"
+              >
+                <div className="min-w-0">
+                  <span className="font-medium">
+                    {item.productName}
+                  </span>
+
+                  <span className="ml-1 text-muted-foreground">
+                    x{item.quantity}
+                  </span>
+                </div>
+
+                <div className="flex shrink-0 items-center gap-2">
+                  <span className="font-semibold">
+                    {fmt(item.subtotal)}
+                  </span>
+
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-6 w-6 text-destructive"
+                    onClick={() => removeEditItem(item.productId)}
+                  >
+                    <Trash2 className="h-3 w-3" />
+                  </Button>
+                </div>
+              </div>
+            ))
+          )}
+
+          <div className="flex justify-between border-t border-border pt-2 font-bold">
+            <span>Total</span>
+
+            <span className="text-secondary">
+              {fmt(editTotal)}
+            </span>
+          </div>
+        </div>
+
+        {/* Forma de pagamento */}
+        <div>
+          <Label>Forma de Pagamento</Label>
+
+          <Select
+            value={editPaymentMethod}
+            onValueChange={(value) =>
+              setEditPaymentMethod(value as any)
+            }
+          >
+            <SelectTrigger className="border border-input bg-white text-black">
+              <SelectValue />
+            </SelectTrigger>
+
+            <SelectContent className="bg-popover border z-50">
+              <SelectItem value="pix">Pix</SelectItem>
+              <SelectItem value="dinheiro">Dinheiro</SelectItem>
+              <SelectItem value="cartao">Cartão</SelectItem>
+              <SelectItem value="outro">Outro</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+
+        <DialogFooter>
+          <Button
+            variant="outline"
+            onClick={() => setEditDialogOpen(false)}
+          >
+            Cancelar
+          </Button>
+
+          <Button
+            onClick={saveSaleEdit}
+            className="bg-secondary text-secondary-foreground hover:bg-secondary/90"
+          >
+            Salvar
+          </Button>
+        </DialogFooter>
+      </div>
+    </DialogContent>
+  </Dialog>
     </div>
   );
 }
