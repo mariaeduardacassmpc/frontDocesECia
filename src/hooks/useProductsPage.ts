@@ -35,11 +35,7 @@ export function useProductsPage() {
     };
   }, []);
 
-  const availableCategories = useMemo(() => {
-    const categorySet = new Set([...categories, ...products.map((product) => product.category)]);
-    return Array.from(categorySet).filter(Boolean).sort((a, b) => a.localeCompare(b));
-  }, [categories, products]);
-
+  const availableCategories = categories;
   const openNew = () => {
     setEditing(null);
     setForm(emptyProduct);
