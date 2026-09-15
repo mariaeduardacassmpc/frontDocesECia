@@ -390,7 +390,10 @@ const {
       </div>
 
    <Dialog open={detailsOpen} onOpenChange={setDetailsOpen}>
-    <DialogContent className="max-h-[90vh] w-[calc(100%-1rem)] overflow-y-auto bg-[#fbf8f2] sm:w-full sm:max-w-md">
+    <DialogContent
+      onOpenAutoFocus={(e) => e.preventDefault()}
+      className="max-h-[90vh] w-[calc(100%-1rem)] overflow-y-auto bg-[#fbf8f2] sm:w-full sm:max-w-md"
+    >
       <DialogHeader>
         <DialogTitle className="font-display text-xl">
           Detalhes da Venda
@@ -399,7 +402,6 @@ const {
 
       {selectedSale && (
         <div className="space-y-4">
-          {/* Cliente */}
           <div>
             <Label>Cliente</Label>
 
@@ -466,16 +468,7 @@ const {
             <div className="mt-1 rounded-md border border-input bg-white px-3 py-2 text-sm text-black">
               {new Date(selectedSale.date).toLocaleString("pt-BR")}
             </div>
-          </div>
-
-          <DialogFooter>
-            <Button
-              variant="outline"
-              onClick={() => setDetailsOpen(false)}
-            >
-              Fechar
-            </Button>
-          </DialogFooter>
+          </div>  
         </div>
       )}
     </DialogContent>
