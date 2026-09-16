@@ -2,6 +2,7 @@ import { FormEvent, useState } from "react";
 import { ArrowRight, Eye, EyeOff, LogIn } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useSession } from "@/contexts/SessionContext";
+import ForgotPasswordDialog from "@/components/ForgotPasswordDialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -15,6 +16,7 @@ export default function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+  const [forgotPasswordOpen, setForgotPasswordOpen] = useState(false);
 
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -104,6 +106,7 @@ export default function Login() {
             <div className="flex justify-end">
             <button
               type="button"
+              onClick={() => setForgotPasswordOpen(true)}
               className="text-sm font-bold text-primary hover:text-primary/80 hover:underline"
             >
               Esqueci minha senha?
@@ -116,6 +119,8 @@ export default function Login() {
           </form>
         </div>
       </section>
+
+      <ForgotPasswordDialog open={forgotPasswordOpen} onOpenChange={setForgotPasswordOpen} defaultEmail={email} />
     </main>
   );
 }

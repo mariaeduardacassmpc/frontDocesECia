@@ -7,6 +7,7 @@ import { AppLayout } from "@/components/AppLayout";
 import { SessionProvider, useSession } from "@/contexts/SessionContext";
 import Dashboard from "@/pages/Dashboard";
 import Login from "@/pages/Login";
+import ResetPassword from "@/pages/ResetPassword";
 import Products from "@/pages/Products";
 import Customers from "@/pages/Customers";
 import Sales from "@/pages/Sales";
@@ -22,6 +23,7 @@ function AppRoutes() {
   return (
     <Routes>
       <Route path="/login" element={isLoggedIn ? <Navigate to="/" replace /> : <Login />} />
+      <Route path="/reset-password" element={<ResetPassword />} />
       {isLoggedIn ? (
         <Route element={<AppLayout />}>
           <Route path="/" element={<Dashboard />} />
