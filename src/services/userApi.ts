@@ -37,6 +37,22 @@ export const userApi = {
     };
   },
 
+  async requestPasswordReset(email: string): Promise<void> {
+    const response = await fetch(`${API_URL}/api/Auth/forgot-password`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        Email: email,
+      }),
+    });
+
+    if (!response.ok) {
+      throw await readError(response, "Erro ao enviar e-mail de recuperação");
+    }
+  },
+
   async update(
     id: number,
     user: { email: string; password: string }
