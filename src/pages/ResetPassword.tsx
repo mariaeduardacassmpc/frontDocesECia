@@ -11,7 +11,9 @@ export default function ResetPassword() {
   const { toast } = useToast();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
+
   const token = searchParams.get("token") ?? "";
+  const email = searchParams.get("email") ?? "";
 
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -21,20 +23,50 @@ export default function ResetPassword() {
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
+    if (!email || !token) {
+      toast({
+        title: "Link inválido ou expirado",
+        description:
+          "Peça um novo e-mail de recuperação na tela de login.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     if (password !== confirmPassword) {
-      toast({ title: "As senhas não coincidem", variant: "destructive" });
+      toast({
+        title: "As senhas não coincidem",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (password.length < 8) {
+      toast({
+        title: "Senha inválida",
+        description: "A senha deve ter no mínimo 8 caracteres.",
+        variant: "destructive",
+      });
       return;
     }
 
     setIsSubmitting(true);
 
     try {
-      await userApi.resetPassword(token, password);
-      toast({ title: "Senha alterada com sucesso. Entre com a nova senha." });
+      await userApi.resetPassword(email, token, password);
+
+      toast({
+        title: "Senha alterada com sucesso",
+        description: "Entre com a sua nova senha.",
+      });
+
       navigate("/login", { replace: true });
     } catch (error) {
       toast({
-        title: error instanceof Error ? error.message : "Erro ao redefinir senha",
+        title:
+          error instanceof Error
+            ? error.message
+            : "Erro ao redefinir senha",
         variant: "destructive",
       });
     } finally {
@@ -49,62 +81,103 @@ export default function ResetPassword() {
           <div className="mb-5 flex h-12 w-12 items-center justify-center rounded-2xl bg-primary text-primary-foreground shadow-soft">
             <KeyRound className="h-5 w-5" />
           </div>
+
           <h2 className="font-display text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
             Criar nova senha
           </h2>
         </div>
 
-        {token ? (
+        {token && email ? (
           <form onSubmit={handleSubmit} className="space-y-5">
             <div className="space-y-2">
-              <Label htmlFor="new-password">Nova senha</Label>
+              <Label htmlFor="new-password">
+                Nova senha
+              </Label>
+
               <div className="relative">
                 <Input
                   className="h-12 bg-white pr-12"
                   id="new-password"
                   type={showPassword ? "text" : "password"}
                   value={password}
-                  onChange={(event) => setPassword(event.target.value)}
+                  onChange={(event) =>
+                    setPassword(event.target.value)
+                  }
                   placeholder="Digite a nova senha"
-                  minLength={6}
+                  minLength={8}
                   required
                 />
+
                 <button
                   type="button"
-                  onClick={() => setShowPassword((visible) => !visible)}
+                  onClick={() =>
+                    setShowPassword((visible) => !visible)
+                  }
                   className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-                  aria-label={showPassword ? "Ocultar senha" : "Mostrar senha"}
+                  aria-label={
+                    showPassword
+                      ? "Ocultar senha"
+                      : "Mostrar senha"
+                  }
                 >
-                  {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                  {showPassword ? (
+                    <EyeOff className="h-5 w-5" />
+                  ) : (
+                    <Eye className="h-5 w-5" />
+                  )}
                 </button>
               </div>
+
+              <p className="text-sm text-muted-foreground">
+                A senha deve ter no mínimo 8 caracteres, incluindo
+                letra maiúscula, letra minúscula, número e caractere
+                especial.
+              </p>
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="confirm-password">Confirmar nova senha</Label>
+              <Label htmlFor="confirm-password">
+                Confirmar nova senha
+              </Label>
+
               <Input
                 className="h-12 bg-white"
                 id="confirm-password"
                 type={showPassword ? "text" : "password"}
                 value={confirmPassword}
-                onChange={(event) => setConfirmPassword(event.target.value)}
+                onChange={(event) =>
+                  setConfirmPassword(event.target.value)
+                }
                 placeholder="Repita a nova senha"
-                minLength={6}
+                minLength={8}
                 required
               />
             </div>
 
-            <Button type="submit" className="h-12 w-full text-base font-semibold" disabled={isSubmitting}>
-              {isSubmitting ? "Salvando..." : "Salvar nova senha"}
+            <Button
+              type="submit"
+              className="h-12 w-full text-base font-semibold"
+              disabled={isSubmitting}
+            >
+              {isSubmitting
+                ? "Salvando..."
+                : "Salvar nova senha"}
             </Button>
           </form>
         ) : (
           <div className="space-y-5">
             <p className="text-base leading-relaxed text-muted-foreground">
-              Link inválido ou expirado. Peça um novo e-mail de recuperação na tela de login.
+              Link inválido ou expirado. Peça um novo e-mail de
+              recuperação na tela de login.
             </p>
-            <Button asChild className="h-12 w-full text-base font-semibold">
-              <Link to="/login">Voltar para o login</Link>
+
+            <Button
+              asChild
+              className="h-12 w-full text-base font-semibold"
+            >
+              <Link to="/login">
+                Voltar para o login
+              </Link>
             </Button>
           </div>
         )}

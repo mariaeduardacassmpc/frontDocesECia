@@ -21,40 +21,44 @@ export default function Profile() {
     }
   }, [profile]);
 
-  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
+const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
+  event.preventDefault();
 
-    try {
-      if (!profile?.id) {
-        throw new Error("ID do usuário não encontrado na sessão");
-      }
-
-      await userApi.update(profile.id, {
-        email,
-        password,
-      });
-
-      updateProfile({
-        id: profile.id,
-        email,
-      });
-
-      setPassword("");
-
-      toast({
-        title: "Dados atualizados",
-        description: "As informações do usuário foram salvas.",
-      });
-    } catch (error) {
-      toast({
-        title:
-          error instanceof Error
-            ? error.message
-            : "Erro ao salvar usuário",
-        variant: "destructive",
-      });
+  try {
+    if (!profile?.id) {
+      throw new Error("ID do usuário não encontrado na sessão");
     }
-  };
+
+    await userApi.update(profile.id, {
+      email: email !== profile.email ? email.trim() : undefined,
+      password: password.trim() || undefined,
+    });
+
+    // Busca novamente os dados atualizados
+    const updatedUser = await userApi.getById(profile.id);
+
+    updateProfile({
+      id: updatedUser.id,
+      email: updatedUser.email,
+    });
+
+    setEmail(updatedUser.email);
+    setPassword("");
+
+    toast({
+      title: "Dados atualizados",
+      description: "As informações do usuário foram salvas.",
+    });
+  } catch (error) {
+    toast({
+      title:
+        error instanceof Error
+          ? error.message
+          : "Erro ao salvar usuário",
+      variant: "destructive",
+    });
+  }
+};
 
   return (
     <div className="mx-auto mt-10 max-w-2xl space-y-6">
@@ -88,7 +92,6 @@ export default function Profile() {
               type="email"
               value={email}
               onChange={(event) => setEmail(event.target.value)}
-              required
             />
           </div>
           <div className="space-y-2">
@@ -103,7 +106,6 @@ export default function Profile() {
               onChange={(event) => setPassword(event.target.value)}
               minLength={8}
               placeholder="Digite uma nova senha"
-              required
               className="placeholder:text-base"
             />
           </div>
