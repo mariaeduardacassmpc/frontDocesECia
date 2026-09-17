@@ -82,7 +82,6 @@ export const userApi = {
       }),
     });
   },
-
   async resetPassword(email: string, token: string, newPassword: string): Promise<void> {
     await apiFetch(`${API_URL}/api/Auth/reset-password`, {
       method: "POST",
