@@ -84,6 +84,10 @@ const {
 } = salesPage;
   const handlePaymentFilterChange = (value: string) => setFilterPayment(value as typeof filterPayment);
 
+  function getCategoryName(categoryId: number): import("react").ReactNode {
+    throw new Error("Function not implemented.");
+  }
+
   return (
     <div className="w-full min-w-0 space-y-6 overflow-x-hidden">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
@@ -172,7 +176,7 @@ const {
                         className="px-3 py-2 hover:bg-accent cursor-pointer text-sm"
                       >
                         <div className="font-medium">{p.name}</div>
-                        <div className="text-xs text-muted-foreground">{p.category} - {fmt(p.price)}</div>
+                        <div className="text-xs text-muted-foreground">{getCategoryName(p.categoryId)} - {fmt(p.salePrice)}</div>
                       </div>
                     ))}
                   </div>
@@ -409,8 +413,6 @@ const {
               {selectedSale.customerName || "Cliente não informado"}
             </div>
           </div>
-
-          {/* Produtos */}
           <div>
             <Label>Produtos</Label>
 
@@ -452,16 +454,12 @@ const {
             </div>
           </div>
 
-          {/* Forma de pagamento */}
           <div>
             <Label>Forma de Pagamento</Label>
-
             <div className="mt-1 rounded-md border border-input bg-white px-3 py-2 text-sm text-black">
               {paymentLabels[selectedSale.paymentMethod]}
             </div>
           </div>
-
-          {/* Data */}
           <div>
             <Label>Data da Venda</Label>
 
@@ -483,7 +481,6 @@ const {
       </DialogHeader>
 
       <div className="space-y-4">
-        {/* Cliente */}
         <div>
           <Label>Cliente</Label>
 
@@ -514,7 +511,6 @@ const {
           </Select>
         </div>
 
-        {/* Adicionar produto */}
         <div className="flex flex-col gap-2 sm:flex-row sm:items-end">
           <div className="relative flex-1">
             <Label>Adicionar produto</Label>
@@ -553,7 +549,7 @@ const {
                     </div>
 
                     <div className="text-xs text-muted-foreground">
-                      {product.category} - {fmt(product.price)}
+                      {getCategoryName(product.categoryId)} - {fmt(product.salePrice)}
                     </div>
                   </div>
                 ))}
@@ -561,7 +557,6 @@ const {
             )}
           </div>
 
-          {/* Quantidade */}
           <div className="w-full sm:w-20">
             <Label>Qtd</Label>
 
@@ -576,7 +571,6 @@ const {
             />
           </div>
 
-          {/* Adicionar */}
           <Button
             onClick={addEditItem}
             size="icon"
@@ -586,7 +580,6 @@ const {
           </Button>
         </div>
 
-        {/* Produtos da venda */}
         <div className="space-y-2 rounded-md bg-white p-3">
           {editItems.length === 0 ? (
             <p className="text-sm text-muted-foreground">
@@ -635,7 +628,6 @@ const {
           </div>
         </div>
 
-        {/* Forma de pagamento */}
         <div>
           <Label>Forma de Pagamento</Label>
 

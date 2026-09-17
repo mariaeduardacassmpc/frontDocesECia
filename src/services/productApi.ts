@@ -1,4 +1,4 @@
-import { Product } from "@/types";
+import { Category, Product } from "@/types";
 import { apiFetch } from "@/services/api";
 
 const API_URL = import.meta.env.VITE_API_URL ?? 'https://localhost:44309';
@@ -21,7 +21,7 @@ export const productApi = {
     };
   },
     
-  async getCategories(): Promise<string[]> {
+  async getCategories(): Promise<Category[]> {
     const response = await apiFetch(`${API_URL}/api/Category`);
 
     if (!response.ok) {
@@ -30,28 +30,14 @@ export const productApi = {
 
     const data = await response.json();
 
-    const items =
-      Array.isArray(data)
-        ? data
-        : data?.data ??
-          data?.Data ??
-          data?.categories ??
-          data?.Categories ??
-          [];
+    const items = Array.isArray(data)
+      ? data
+      : data?.data ?? data?.Data ?? [];
 
-    return items
-      .map((item: any) =>
-        typeof item === 'string'
-          ? item.trim()
-          : String(
-              item?.Name ??
-              item?.name ??
-              item?.CategoryName ??
-              item?.categoryName ??
-              ''
-            ).trim()
-      )
-      .filter(Boolean);
+    return items.map((item: any) => ({
+      categoryId: item.categoryId ?? item.CategoryId,
+      name: item.name ?? item.Name,
+    }));
   },
 
   async getAll(): Promise<any[]> {
@@ -66,34 +52,32 @@ export const productApi = {
     return data?.data || data?.Data || data?.products || data?.Products || [];
   },
 
-    async create(p: Omit<Product, 'id'>): Promise<void> {
-    const response = await apiFetch(
-        `${API_URL}/api/Product`,
-        {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-            Name: p.name,
-            Active: p.active !== false,
-            Category: p.category,
-            Description: p.description,
-            Image: p.image,
-            SalePrice: p.price,
-            PurchasePrice: p.cost,
-            Stock: p.stock,
-        }),
-        }
-    );
+async create(p: Omit<Product, 'id'>): Promise<void> {
+  const response = await apiFetch(
+    `${API_URL}/api/Product`,
+    {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        Name: p.name,
+        Active: p.active !== false,
+        CategoryId: p.categoryId,
+        Description: p.description,
+        Image: p.image,
+        SalePrice: p.salePrice,
+        PurchasePrice: p.purchasePrice,
+        Stock: p.stock,
+      }),
+    }
+  );
 
     if (!response.ok) {
-        const error = await response.text();
-        console.error('STATUS:', response.status);
-        console.error('RESPOSTA DA API:', error);
-        throw new Error(error || 'Erro ao criar produto');
+      throw new Error('Erro ao criar produto');
     }
-    },
+  }, 
+
   async getById(id: number): Promise<any> {
     const response = await apiFetch(`${API_URL}/api/Product/${id}`);
 
@@ -112,22 +96,21 @@ export const productApi = {
         headers: {
           'Content-Type': 'application/json',
         },
-      body: JSON.stringify({
-            Name: p.name,
-            Active: p.active !== false,
-            Category: p.category,
-            Description: p.description,
-            Image: p.image,
-            SalePrice: p.price,
-            PurchasePrice: p.cost,
-            Stock: p.stock,
-            }),
+        body: JSON.stringify({
+          Name: p.name,
+          Active: p.active !== false,
+          CategoryId: p.categoryId,
+          Description: p.description,
+          Image: p.image,
+          SalePrice: p.salePrice,
+          PurchasePrice: p.purchasePrice,
+          Stock: p.stock,
+        }),
       }
     );
 
     if (!response.ok) {
-      const details = await response.text();
-      throw new Error(details || `Erro ao atualizar produto (${response.status})`);
+      throw new Error('Erro ao atualizar produto');
     }
   },
 

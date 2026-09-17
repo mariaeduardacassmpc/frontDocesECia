@@ -2,12 +2,17 @@ export interface Product {
   id: number;
   active?: boolean;
   name: string;
-  category: string;
-  price: number;
-  cost: number;
+  categoryId: number;
+  salePrice: number;
+  purchasePrice: number;
   description: string;
   image?: string;
   stock: number;
+}
+
+export interface Category {
+  categoryId: number;
+  name: string;
 }
 
 export interface Sale {

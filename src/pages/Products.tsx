@@ -136,7 +136,7 @@ export default function Products() {
                   <div className="flex items-center gap-3">
                     <div>
                       <p className="font-semibold text-sm">{product.name}</p>
-                      <p className="text-xs text-muted-foreground">{product.category}</p>
+                      <p className="text-xs text-muted-foreground">{product.categoryId}</p>
                     </div>
                   </div>
                   <span className="font-display font-bold text-destructive">{product.stock} un.</span>
@@ -166,7 +166,7 @@ export default function Products() {
         >
           <option value="">Todas as categorias</option>
           {categories.map(cat => (
-            <option key={cat} value={cat}>{cat}</option>
+            <option key={cat.categoryId} value={cat.categoryId}>{cat.name}</option>
           ))}
         </select>
 
@@ -209,7 +209,7 @@ export default function Products() {
               <CardContent className="p-5 space-y-3">
                 <div className="space-y-1">
                 <span className="inline-block rounded-full bg-accent px-2.5 py-0.5 text-xs font-medium text-accent-foreground">
-                  {p.category}
+                  {p.categoryId}
                 </span>
 
                 <div className="flex items-center justify-between">
@@ -224,14 +224,14 @@ export default function Products() {
                     <h3 className="font-display font-bold text-lg">{p.name}</h3>
                   </div>
                   <span className="text-xl font-display font-bold text-secondary">
-                    {fmt(p.price)}
+                    {fmt(p.salePrice)}
                   </span>
                 </div>
               </div>
                 <p className="text-sm text-muted-foreground line-clamp-2">{p.description}</p>
                 <div className="flex items-center justify-between text-xs text-muted-foreground">
-                  <span>Custo: {fmt(p.cost)}</span>
-                  <span className="text-secondary font-semibold">Lucro: {fmt((p.price ?? 0) - (p.cost ?? 0))}</span>
+                  <span>Custo: {fmt(p.purchasePrice)}</span>
+                  <span className="text-secondary font-semibold">Lucro: {fmt((p.salePrice ?? 0) - (p.purchasePrice ?? 0))}</span>
                 </div>
                 <div className="flex items-center gap-2 text-xs">
                   <Package className="h-3.5 w-3.5" />
@@ -262,22 +262,30 @@ export default function Products() {
                 <Input value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} placeholder="Ex: Brigadeiro Gourmet" className="bg-white text-black" />
               </div>
               <div>
-                <Label>Categoria</Label>
-                <select
-                  value={form.category}
-                  onChange={e => setForm({ ...form, category: e.target.value })}
-                  className="w-full px-3 py-2 border border-input rounded-md text-sm shadow-sm bg-white text-black placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary"
-                >
-                  <option value="">Selecione a categoria</option>
-                  {categories.map(cat => (
-                    <option key={cat} value={cat}>{cat}</option>
-                  ))}
-                </select>
+             <Label>Categoria</Label>
+              <select
+                value={form.categoryId}
+                onChange={e =>
+                  setForm({
+                    ...form,
+                    categoryId: parseInt(e.target.value) || 0
+                  })
+                }
+                className="w-full px-3 py-2 border border-input rounded-md text-sm shadow-sm bg-white text-black placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary"
+              >
+                <option value={0}>Selecione a categoria</option>
+
+                {categories.map(cat => (
+                  <option key={cat.categoryId} value={cat.categoryId}>
+                    {cat.name}
+                  </option>
+                ))}
+              </select>
               </div>
             </div>
             <div className="grid grid-cols-3 gap-4">
-              <div><Label>Preço (R$)</Label><Input type="number" step="0.01" value={form.price || ''} onChange={e => setForm({ ...form, price: parseFloat(e.target.value) || 0 })} className="bg-white text-black" /></div>
-              <div><Label>Custo (R$)</Label><Input type="number" step="0.01" value={form.cost || ''} onChange={e => setForm({ ...form, cost: parseFloat(e.target.value) || 0 })} className="bg-white text-black" /></div>
+              <div><Label>Preço (R$)</Label><Input type="number" step="0.01" value={form.salePrice || ''} onChange={e => setForm({ ...form, salePrice: parseFloat(e.target.value) || 0 })} className="bg-white text-black" /></div>
+              <div><Label>Custo (R$)</Label><Input type="number" step="0.01" value={form.purchasePrice || ''} onChange={e => setForm({ ...form, purchasePrice: parseFloat(e.target.value) || 0 })} className="bg-white text-black" /></div>
               <div><Label>Estoque</Label><Input type="number" min={0} value={form.stock || ''} onChange={e => setForm({ ...form, stock: parseInt(e.target.value) || 0 })} className="bg-white text-black" /></div>
             </div>
             <div><Label>Descrição</Label><Input value={form.description} onChange={e => setForm({ ...form, description: e.target.value })} placeholder="Descrição do produto" className="bg-white text-black" /></div>

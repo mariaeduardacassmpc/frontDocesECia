@@ -268,7 +268,6 @@ export default function Customers() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-      
 
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <AlertDialogContent>

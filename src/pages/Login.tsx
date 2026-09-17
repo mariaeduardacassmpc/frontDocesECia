@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { userApi } from "@/services/userApi";
+import ForgotPasswordDialog from "@/components/ForgotPasswordDialog";
 
 export default function Login() {
   const { enter } = useSession();
@@ -15,7 +16,7 @@ export default function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
-
+  const [forgotPasswordOpen, setForgotPasswordOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
@@ -44,7 +45,7 @@ export default function Login() {
           backgroundImage: "url('/img.jpg')",
           backgroundSize: "130%",
         }}
-        aria-label="Bolo decorado da Marcelo Doces & Cia"
+        aria-label="Marcelo Doces & Cia"
       >
         <div className="absolute inset-0 bg-[#2b1714]/50" />
         <div className="relative flex items-center gap-3 text-white">
@@ -104,9 +105,8 @@ export default function Login() {
             <div className="flex justify-end">
             <button
               type="button"
-              className="text-sm font-bold text-primary hover:text-primary/80 hover:underline"
-            >
-              Esqueci minha senha?
+              onClick={() => setForgotPasswordOpen(true)}
+              className="text-sm font-bold text-primary hover:text-primary/80 hover:underline">Esqueci minha senha?
             </button>
           </div>
             </div>
@@ -116,6 +116,7 @@ export default function Login() {
           </form>
         </div>
       </section>
+      <ForgotPasswordDialog open={forgotPasswordOpen} onOpenChange={setForgotPasswordOpen} defaultEmail={email} />
     </main>
   );
 }

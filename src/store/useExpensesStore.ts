@@ -21,7 +21,7 @@ function mapExpense(e: any): Expense {
   return {
     id: String(e.ExpenseId ?? e.expenseId ?? e.id ?? e.Id ?? crypto.randomUUID()),
     date: e.date ?? e.Date ?? new Date().toISOString(),
-    description: e.description ?? e.Description ?? 'Sem descrição',
+    description: e.description ?? e.Description ?? 'Sem descriç ão',
     amount: Number(e.amount ?? e.Amount ?? e.value ?? e.Value ?? 0),
   };
 }

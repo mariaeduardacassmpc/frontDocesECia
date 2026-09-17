@@ -1,15 +1,24 @@
 import { useEffect, useMemo, useState } from "react";
 import { useProducts } from "@/store/useStore";
 import { productApi } from "@/services/productApi";
-import { Product } from "@/types";
+import { Category, Product } from "@/types";
 import { getProductForm, removeProduct, saveProduct, validateProduct } from "@/services/ProductService";
 
 
-const emptyProduct = { active: true, name: '', category: '', price: 0, cost: 0, description: '', stock: 0, image: '' };
+const emptyProduct: Omit<Product, 'id'> = {
+  active: true,
+  name: '',
+  categoryId: 0,
+  salePrice: 0,
+  purchasePrice: 0,
+  description: '',
+  stock: 0,
+  image: '',
+};
 
 export function useProductsPage() {
   const { products, loading, addProduct, updateProduct, deleteProduct, toggleProduct } = useProducts();
-  const [categories, setCategories] = useState<string[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
   const [search, setSearch] = useState('');
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editing, setEditing] = useState<Product | null>(null);
@@ -86,18 +95,26 @@ export function useProductsPage() {
     }
   };
 
+
+    const getCategoryName = useMemo(() => {
+    const byId = new Map(categories.map(c => [c.categoryId, c.name]));
+    return (id: number) => byId.get(id) ?? '';
+  }, [categories]);
+
   const filtered = useMemo(
     () =>
-      products.filter(
-        (p) =>
-          ((p.name ?? '').toLowerCase().includes(search.toLowerCase()) ||
-            (p.category ?? '').toLowerCase().includes(search.toLowerCase())) &&
-          (categoryFilter === '' || p.category === categoryFilter) &&
+      products.filter(p => {
+        const term = search.toLowerCase();
+        return (
+          ((p.name ?? '').toLowerCase().includes(term) ||
+            getCategoryName(p.categoryId).toLowerCase().includes(term)) &&
+          (categoryFilter === '' || String(p.categoryId) === categoryFilter) &&
           (statusFilter === 'all' ||
             (statusFilter === 'active' && p.active !== false) ||
-            (statusFilter === 'inactive' && p.active === false)),
-      ),
-    [products, search, categoryFilter, statusFilter],
+            (statusFilter === 'inactive' && p.active === false))
+        );
+      }),
+    [products, search, categoryFilter, statusFilter, getCategoryName],
   );
 
   const fmt = (value?: number | string) => {
