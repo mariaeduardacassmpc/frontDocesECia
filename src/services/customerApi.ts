@@ -69,13 +69,11 @@ export const customerApi = {
       }),
     });
 
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error("API Create - Error:", errorText);
-      throw new Error("Erro ao criar cliente");
-    }
+    const data = await response.json();
 
-    await response.text();
+    if (!response.ok) {
+      throw new Error(data?.message || "Erro ao criar cliente");
+    }
   },
 
   async getById(id: number): Promise<Customer> {
