@@ -209,7 +209,7 @@ export default function Customers() {
               <Input value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} placeholder="Ex: João Silva" className="bg-white text-black" />
             </div>
             <div>
-              <Label>Email</Label>
+              <Label>Email *</Label>
               <Input type="email" value={form.email} onChange={e => setForm({ ...form, email: e.target.value })} placeholder="exemplo@email.com" className="bg-white text-black" />
             </div>
             <div className="grid grid-cols-2 gap-4">
@@ -255,9 +255,13 @@ export default function Customers() {
               onClick={async () => {
                 const result = await handleSave();
                 if (result?.error) {
-                  toast({ title: "Dados inválidos", description: result.error, variant: "destructive" });
+                  toast({
+                    title: result.error,
+                    variant: "destructive",
+                  });
                   return;
                 }
+
                 toast({ title: editing ? "Cliente atualizado" : "Cliente cadastrado" });
                 setDialogOpen(false);
               }}

@@ -82,8 +82,12 @@ export function useCustomersPage() {
       setEditing(null);
       setForm(emptyCustomer);
       return { success: true };
-    } catch (error) {
-      return { error: 'Erro ao salvar cliente' };
+      } catch (error) {
+      return {
+        error: error instanceof Error
+          ? error.message
+          : 'Erro ao salvar cliente',
+      };
     }
   };
 

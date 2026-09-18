@@ -26,19 +26,34 @@ export function formatPhone(value: string) {
 
 
 export function validateCustomer(form: CustomerForm): string | null {
-  if (!form.name.trim()) return "Nome é obrigatório";
+  if (!form.name.trim()) {
+    return "Nome é obrigatório";
+  }
 
-  if (!form.phone.trim()) return "Telefone é obrigatório";
+  if (!form.email.trim()) {
+    return "Email é obrigatório";
+  }
+
+  if (!/\S+@\S+\.\S+/.test(form.email)) {
+    return "Email inválido";
+  }
+
+  if (!form.phone.trim()) {
+    return "Telefone é obrigatório";
+  }
 
   const phoneNumbers = form.phone.replace(/\D/g, "");
-  if (phoneNumbers.length < 10) return "Telefone inválido";
 
-  if (!form.city.trim()) return "Cidade é obrigatória";
+  if (phoneNumbers.length < 10) {
+    return "Telefone inválido";
+  }
 
-  if (!form.address.trim()) return "Endereço é obrigatório";
+  if (!form.city.trim()) {
+    return "Cidade é obrigatória";
+  }
 
-  if (form.email && !/\S+@\S+\.\S+/.test(form.email)) {
-    return "Email inválido";
+  if (!form.address.trim()) {
+    return "Endereço é obrigatório";
   }
 
   return null;
