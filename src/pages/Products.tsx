@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { Plus, Pencil, Search, Package, Download, ImagePlus, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -8,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/hooks/use-toast";
 import { useProductsPage } from "@/hooks/useProductsPage";
-import { cropProductImage, getProductImageSrc } from "@/services/ProductService";
+import { getProductImageSrc } from "@/services/ProductService";
 import { productApi } from "@/services/productApi";
 
 export default function Products() {
@@ -33,35 +32,16 @@ export default function Products() {
     openNew,
     openEdit,
     handleSave,
-    getCategoryName
+    getCategoryName,
   } = useProductsPage();
   const { toast } = useToast();
-  const [imageZoom, setImageZoom] = useState(1);
-  const [imagePosition, setImagePosition] = useState({ x: 50, y: 50 });
-
   const handleImageFile = (file?: File) => {
     if (!file) return;
     const reader = new FileReader();
     reader.onloadend = () => {
       setForm({ ...form, image: reader.result as string });
-      setImageZoom(1);
-      setImagePosition({ x: 50, y: 50 });
     };
     reader.readAsDataURL(file);
-  };
-
-  const applyImageFraming = async () => {
-    if (!form.image) return;
-
-    try {
-      const image = await cropProductImage(form.image, imageZoom, imagePosition.x, imagePosition.y);
-      setForm({ ...form, image });
-      setImageZoom(1);
-      setImagePosition({ x: 50, y: 50 });
-      toast({ title: "Enquadramento aplicado" });
-    } catch {
-      toast({ title: "Não foi possível ajustar a imagem", variant: "destructive" });
-    }
   };
 
   const handleDownloadReport = async () => {
@@ -138,8 +118,8 @@ export default function Products() {
                     <div>
                       <p className="font-semibold text-sm">{product.name}</p>
                       <p className="text-xs text-muted-foreground">
-{product.category || getCategoryName(product.categoryId) || "Sem categoria"}
-                  </p>                    
+                        {product.category || getCategoryName(product.categoryId) || "Sem categoria"}
+                      </p>
                     </div>
                   </div>
                   <span className="font-display font-bold text-destructive">{product.stock} un.</span>
@@ -149,50 +129,51 @@ export default function Products() {
           </CardContent>
         </Card>
       )}
-    <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center">
-      <div className="relative w-full sm:max-w-sm">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-        <Input
-          placeholder="Buscar produto"
-          value={search}
-          onChange={e => setSearch(e.target.value)}
-          className="w-full bg-white text-black pl-10"
-        />
+
+      <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center">
+        <div className="relative w-full sm:max-w-sm">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Input
+            placeholder="Buscar produto"
+            value={search}
+            onChange={e => setSearch(e.target.value)}
+            className="w-full bg-white text-black pl-10"
+          />
+        </div>
+
+        <div className="grid grid-cols-2 gap-3 sm:flex sm:flex-wrap">
+          <select
+            value={categoryFilter}
+            onChange={(e) => setCategoryFilter(e.target.value)}
+            className="w-full sm:w-auto px-3 py-2 border border-input rounded-md text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary"
+            style={{ backgroundColor: "#ffffff", color: "#000000" }}
+          >
+            <option value="">Todas as categorias</option>
+
+            {categories.map((cat) => (
+              <option key={cat.categoryId} value={String(cat.categoryId)}>
+                {cat.name}
+              </option>
+            ))}
+          </select>
+
+          <select
+            value={statusFilter}
+            onChange={e => setStatusFilter(e.target.value as 'all' | 'active' | 'inactive')}
+            className="w-full sm:w-auto px-3 py-2 border border-input rounded-md text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary"
+            style={{ backgroundColor: '#ffffff', color: '#000000' }}
+          >
+            <option value="all">Todos os status</option>
+            <option value="active">Ativos</option>
+            <option value="inactive">Inativos</option>
+          </select>
+        </div>
       </div>
-
-      <div className="grid grid-cols-2 gap-3 sm:flex sm:flex-wrap">
-       <select
-          value={categoryFilter}
-          onChange={(e) => setCategoryFilter(e.target.value)}
-          className="w-full sm:w-auto px-3 py-2 border border-input rounded-md text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary"
-          style={{ backgroundColor: "#ffffff", color: "#000000" }}
-        >
-          <option value="">Todas as categorias</option>
-
-          {categories.map((cat) => (
-            <option key={cat.categoryId} value={String(cat.categoryId)}>
-              {cat.name}
-            </option>
-          ))}
-        </select>
-
-        <select
-          value={statusFilter}
-          onChange={e => setStatusFilter(e.target.value as 'all' | 'active' | 'inactive')}
-          className="w-full sm:w-auto px-3 py-2 border border-input rounded-md text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary"
-          style={{ backgroundColor: '#ffffff', color: '#000000' }}
-        >
-          <option value="all">Todos os status</option>
-          <option value="active">Ativos</option>
-          <option value="inactive">Inativos</option>
-        </select>
-      </div>
-    </div>
 
       {filtered.length === 0 ? (
         <Card className="border-dashed border-2">
           <CardContent className="py-12 text-center text-muted-foreground">
-            Nenhum produto encontrado. Comece adicionando um! 
+            Nenhum produto encontrado. Comece adicionando um!
           </CardContent>
         </Card>
       ) : (
@@ -214,24 +195,25 @@ export default function Products() {
               )}
               <CardContent className="p-5 space-y-3">
                 <div className="space-y-1">
-               <span className="inline-block rounded-full bg-accent px-2.5 py-0.5 text-xs font-medium text-accent-foreground">
-                  {p.category || getCategoryName(p.categoryId) || "Sem categoria"}               </span>
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    {p.active === false && (
-                      <span
-                        className="h-2.5 w-2.5 rounded-full bg-destructive"
-                        title="Produto inativo"
-                        aria-label="Produto inativo"
-                      />
-                    )}
-                    <h3 className="font-display font-bold text-lg">{p.name}</h3>
-                  </div>
-                  <span className="text-xl font-display font-bold text-secondary">
-                    {fmt(p.salePrice)}
+                  <span className="inline-block rounded-full bg-accent px-2.5 py-0.5 text-xs font-medium text-accent-foreground">
+                    {p.category || getCategoryName(p.categoryId) || "Sem categoria"}
                   </span>
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      {p.active === false && (
+                        <span
+                          className="h-2.5 w-2.5 rounded-full bg-destructive"
+                          title="Produto inativo"
+                          aria-label="Produto inativo"
+                        />
+                      )}
+                      <h3 className="font-display font-bold text-lg">{p.name}</h3>
+                    </div>
+                    <span className="text-xl font-display font-bold text-secondary">
+                      {fmt(p.salePrice)}
+                    </span>
+                  </div>
                 </div>
-              </div>
                 <p className="text-sm text-muted-foreground line-clamp-2">{p.description}</p>
                 <div className="flex items-center justify-between text-xs text-muted-foreground">
                   <span>Custo: {fmt(p.purchasePrice)}</span>
@@ -266,25 +248,20 @@ export default function Products() {
                 <Input value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} placeholder="Ex: Brigadeiro Gourmet" className="bg-white text-black" />
               </div>
               <div>
-             <Label>Categoria</Label>
-              <select
-                value={form.categoryId}
-                onChange={e =>
-                  setForm({
-                    ...form,
-                    categoryId: parseInt(e.target.value) || 0
-                  })
-                }
-                className="w-full px-3 py-2 border border-input rounded-md text-sm shadow-sm bg-white text-black placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary"
-              >
-                <option value={0}>Selecione a categoria</option>
+                <Label>Categoria</Label>
+                <select
+                  value={String(form.categoryId)}
+                  onChange={e => setForm({ ...form, categoryId: Number(e.target.value) || 0 })}
+                  className="w-full px-3 py-2 border border-input rounded-md text-sm shadow-sm bg-white text-black placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary"
+                >
+                  <option value="0">Selecione a categoria</option>
 
-                {categories.map(cat => (
-                  <option key={cat.categoryId} value={cat.categoryId}>
-                    {cat.name}
-                  </option>
-                ))}
-              </select>
+                  {categories.map(cat => (
+                    <option key={cat.categoryId} value={String(cat.categoryId)}>
+                      {cat.name}
+                    </option>
+                  ))}
+                </select>
               </div>
             </div>
             <div className="grid grid-cols-3 gap-4">
@@ -313,36 +290,13 @@ export default function Products() {
                 <input type="file" accept="image/*" className="hidden" onChange={event => handleImageFile(event.target.files?.[0])} />
               </label>
               {form.image && (
-                <>
-                  <div className="mx-auto aspect-square max-h-72 w-full max-w-md overflow-hidden rounded-md bg-muted">
-                    <img
-                      src={getProductImageSrc(form.image)}
-                      alt="Pré-visualização do produto"
-                      className="h-full w-full object-cover"
-                      style={{
-                        transform: `scale(${imageZoom})`,
-                        transformOrigin: `${imagePosition.x}% ${imagePosition.y}%`,
-                      }}
-                    />
-                  </div>
-                  <div className="space-y-2 rounded-md border border-input p-3">
-                    <div className="flex items-center gap-3">
-                      <Label htmlFor="image-zoom" className="w-16 text-xs">Zoom</Label>
-                      <input id="image-zoom" type="range" min="1" max="2.5" step="0.05" value={imageZoom} onChange={event => setImageZoom(Number(event.target.value))} className="w-full accent-primary" />
-                    </div>
-                    <div className="flex items-center gap-3">
-                      <Label htmlFor="image-position-x" className="w-16 text-xs">Lateral</Label>
-                      <input id="image-position-x" type="range" min="0" max="100" value={imagePosition.x} onChange={event => setImagePosition({ ...imagePosition, x: Number(event.target.value) })} className="w-full accent-primary" />
-                    </div>
-                    <div className="flex items-center gap-3">
-                      <Label htmlFor="image-position-y" className="w-16 text-xs">Altura</Label>
-                      <input id="image-position-y" type="range" min="0" max="100" value={imagePosition.y} onChange={event => setImagePosition({ ...imagePosition, y: Number(event.target.value) })} className="w-full accent-primary" />
-                    </div>
-                    <Button type="button" variant="outline" size="sm" onClick={applyImageFraming} className="w-full">
-                      Aplicar enquadramento
-                    </Button>
-                  </div>
-                </>
+                <div className="mx-auto aspect-square max-h-72 w-full max-w-md overflow-hidden rounded-md bg-muted">
+                  <img
+                    src={getProductImageSrc(form.image)}
+                    alt="Pré-visualização do produto"
+                    className="h-full w-full object-cover"
+                  />
+                </div>
               )}
             </div>
             {editing && (
@@ -378,4 +332,4 @@ export default function Products() {
       </Dialog>
     </div>
   );
-}
+} 
