@@ -3,6 +3,7 @@ export interface Product {
   active?: boolean;
   name: string;
   categoryId: number;
+  category?: string; 
   salePrice: number;
   purchasePrice: number;
   description: string;

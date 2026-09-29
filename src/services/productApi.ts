@@ -25,19 +25,21 @@ export const productApi = {
     const response = await apiFetch(`${API_URL}/api/Category`);
 
     if (!response.ok) {
-      throw new Error('Erro ao buscar categorias');
+      throw new Error("Erro ao buscar categorias");
     }
 
-    const data = await response.json();
+  const data = await response.json();
 
-    const items = Array.isArray(data)
-      ? data
-      : data?.data ?? data?.Data ?? [];
+  const list = Array.isArray(data)
+    ? data
+    : data?.data ?? data?.Data ?? data?.items ?? data?.Items ?? data?.categories ?? data?.Categories ?? [];
 
-    return items.map((item: any) => ({
-      categoryId: item.categoryId ?? item.CategoryId,
-      name: item.name ?? item.Name,
-    }));
+  return list
+    .map((c: any) => ({
+      categoryId: Number(c.id ?? c.Id ?? c.categoryId ?? c.CategoryId),
+      name: String(c.name ?? c.Name ?? c.description ?? ""),
+    }))
+    .filter((c: Category) => !Number.isNaN(c.categoryId));
   },
 
   async getAll(): Promise<any[]> {

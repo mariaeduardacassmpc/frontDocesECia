@@ -3,17 +3,25 @@ import { Product } from '@/types';
 import { productApi } from '@/services/productApi';
 
 function mapProduct(p: unknown): Product {
-  const product = p as Record<string, unknown>;
+  const product = p as Record<string, any>;
+  const rawCategory = product.category ?? product.Category;
+
+  const categoryName =
+    typeof rawCategory === 'string'
+      ? rawCategory
+      : rawCategory?.name ?? rawCategory?.Name ?? product.categoryName ?? product.CategoryName ?? '';
+
   return {
-    id: Number(product.ProdutoId ?? product.ProductId ?? product.id ?? product.Id),
-    active: product.Active ?? product.active ?? true,
-    name: String(product.Name ?? product.Nome ?? product.name ?? 'Sem nome'),
-    category: String(product.Category ?? product.Categoria ?? product.category ?? 'Sem categoria'),
-    price: Number(product.SalePrice ?? product.PrecoDeVenda ?? product.price ?? 0),
-    cost: Number(product.PurchasePrice ?? product.PrecoDeCompra ?? product.cost ?? 0),
-    stock: Number(product.Stock ?? product.Estoque ?? product.stock ?? 0),
-    description: String(product.Description ?? product.Descricao ?? product.description ?? 'Sem descrição'),
-    image: String(product.Image ?? product.Imagem ?? product.image ?? ''),
+    id: Number(product.id ?? product.Id),
+    active: (product.active ?? product.Active) !== false,
+    name: String(product.name ?? product.Name ?? ''),
+    categoryId: Number(product.categoryId ?? product.CategoryId ?? rawCategory?.id ?? rawCategory?.Id ?? 0),
+    category: String(categoryName),
+    salePrice: Number(product.salePrice ?? product.SalePrice ?? 0),
+    purchasePrice: Number(product.purchasePrice ?? product.PurchasePrice ?? 0),
+    description: String(product.description ?? product.Description ?? ''),
+    image: String(product.image ?? product.Image ?? ''),
+    stock: Number(product.stock ?? product.Stock ?? 0),
   };
 }
 

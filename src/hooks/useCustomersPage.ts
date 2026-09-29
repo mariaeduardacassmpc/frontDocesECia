@@ -63,30 +63,31 @@ export function useCustomersPage() {
 
   const handleSave = async () => {
     const errorMessage = validateCustomer(form);
+
     if (errorMessage) {
       return { error: errorMessage };
     }
 
     try {
-      const formToSave = editing
-        ? { ...form, active: editing.active !== false }
-        : form;
-
-      await saveCustomer({ form: formToSave, editing, addCustomer, updateCustomer });
-
-      if (editing && form.active !== (editing.active !== false)) {
-        await toggleCustomer(editing.id);
+      if (editing) {
+        await updateCustomer({
+          id: editing.id,
+          ...form,
+        });
+      } else {
+        await addCustomer(form);
       }
 
       setDialogOpen(false);
       setEditing(null);
       setForm(emptyCustomer);
+
       return { success: true };
-      } catch (error) {
+    } catch (error) {
       return {
         error: error instanceof Error
           ? error.message
-          : 'Erro ao salvar cliente',
+          : "Erro ao salvar cliente",
       };
     }
   };

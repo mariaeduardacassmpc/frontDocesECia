@@ -25,9 +25,10 @@ export function getProductForm(product: Product): ProductForm {
   return {
     active: product.active !== false,
     name: product.name,
+    categoryId: product.categoryId,
     category: product.category,
-    price: product.price,
-    cost: product.cost,
+    salePrice: product.salePrice,
+    purchasePrice: product.purchasePrice,
     description: product.description,
     stock: product.stock,
     image: product.image || "",

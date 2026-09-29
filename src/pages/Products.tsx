@@ -33,6 +33,7 @@ export default function Products() {
     openNew,
     openEdit,
     handleSave,
+    getCategoryName
   } = useProductsPage();
   const { toast } = useToast();
   const [imageZoom, setImageZoom] = useState(1);
@@ -136,7 +137,9 @@ export default function Products() {
                   <div className="flex items-center gap-3">
                     <div>
                       <p className="font-semibold text-sm">{product.name}</p>
-                      <p className="text-xs text-muted-foreground">{product.categoryId}</p>
+                      <p className="text-xs text-muted-foreground">
+{product.category || getCategoryName(product.categoryId) || "Sem categoria"}
+                  </p>                    
                     </div>
                   </div>
                   <span className="font-display font-bold text-destructive">{product.stock} un.</span>
@@ -158,15 +161,18 @@ export default function Products() {
       </div>
 
       <div className="grid grid-cols-2 gap-3 sm:flex sm:flex-wrap">
-        <select
+       <select
           value={categoryFilter}
-          onChange={e => setCategoryFilter(e.target.value)}
+          onChange={(e) => setCategoryFilter(e.target.value)}
           className="w-full sm:w-auto px-3 py-2 border border-input rounded-md text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary"
-          style={{ backgroundColor: '#ffffff', color: '#000000' }}
+          style={{ backgroundColor: "#ffffff", color: "#000000" }}
         >
           <option value="">Todas as categorias</option>
-          {categories.map(cat => (
-            <option key={cat.categoryId} value={cat.categoryId}>{cat.name}</option>
+
+          {categories.map((cat) => (
+            <option key={cat.categoryId} value={String(cat.categoryId)}>
+              {cat.name}
+            </option>
           ))}
         </select>
 
@@ -208,10 +214,8 @@ export default function Products() {
               )}
               <CardContent className="p-5 space-y-3">
                 <div className="space-y-1">
-                <span className="inline-block rounded-full bg-accent px-2.5 py-0.5 text-xs font-medium text-accent-foreground">
-                  {p.categoryId}
-                </span>
-
+               <span className="inline-block rounded-full bg-accent px-2.5 py-0.5 text-xs font-medium text-accent-foreground">
+                  {p.category || getCategoryName(p.categoryId) || "Sem categoria"}               </span>
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     {p.active === false && (

@@ -105,9 +105,11 @@ export function useProductsPage() {
     () =>
       products.filter(p => {
         const term = search.toLowerCase();
+        const categoryName = p.category ?? getCategoryName(p.categoryId);
+
         return (
           ((p.name ?? '').toLowerCase().includes(term) ||
-            getCategoryName(p.categoryId).toLowerCase().includes(term)) &&
+            categoryName.toLowerCase().includes(term)) &&
           (categoryFilter === '' || String(p.categoryId) === categoryFilter) &&
           (statusFilter === 'all' ||
             (statusFilter === 'active' && p.active !== false) ||
@@ -147,5 +149,6 @@ export function useProductsPage() {
     handleSave,
     handleDelete,
     handleToggleActive,
+    getCategoryName
   };
 }
