@@ -15,11 +15,41 @@ export function getCurrentDateParts() {
 }
 
 export function mapFinancialSummary(summary: Record<string, unknown>) {
+  const totalRevenue = Number(summary.totalRevenue ?? summary.TotalRevenue ?? summary.receitaTotal ?? summary.ReceitaTotal ?? summary.revenue ?? summary.Revenue ?? 0);
+  const totalExpenses = Number(summary.totalExpenses ?? summary.TotalExpenses ?? summary.despesasCustos ?? summary.DespesasCustos ?? summary.expenses ?? summary.Expenses ?? 0);
+  const totalCost = Number(summary.totalCost ?? summary.TotalCost ?? summary.cost ?? summary.Cost ?? 0);
+
   return {
-    totalRevenue: Number(summary.totalRevenue ?? summary.TotalRevenue ?? summary.receitaTotal ?? summary.ReceitaTotal ?? summary.revenue ?? summary.Revenue ?? 0),
-    totalExpenses: Number(summary.totalExpenses ?? summary.TotalExpenses ?? summary.despesasCustos ?? summary.DespesasCustos ?? summary.expenses ?? summary.Expenses ?? 0),
-    totalCost: Number(summary.totalCost ?? summary.TotalCost ?? summary.cost ?? summary.Cost ?? 0),
-    profit: Number(summary.profit ?? summary.Profit ?? summary.lucroLiquido ?? summary.LucroLiquido ?? 0),
+    totalRevenue,
+    totalExpenses,
+    totalCost,
+    profit: totalRevenue - totalExpenses - totalCost,
+  };
+}
+
+export function calculateLocalSummary(
+  sales: Sale[],
+  expenses: Expense[],
+  month: string,
+) {
+  const [year, monthNumber] = month.split("-").map(Number);
+  const inMonth = (date: string) => {
+    const value = new Date(date);
+    return value.getFullYear() === year && value.getMonth() + 1 === monthNumber;
+  };
+
+  const totalRevenue = sales
+    .filter(sale => inMonth(sale.date))
+    .reduce((sum, sale) => sum + sale.total, 0);
+  const totalExpenses = expenses
+    .filter(expense => inMonth(expense.date))
+    .reduce((sum, expense) => sum + expense.amount, 0);
+
+  return {
+    totalRevenue,
+    totalExpenses,
+    totalCost: 0,
+    profit: totalRevenue - totalExpenses,
   };
 }
 

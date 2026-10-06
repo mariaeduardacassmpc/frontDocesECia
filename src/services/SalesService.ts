@@ -43,8 +43,8 @@ export function filterProductsBySearch(products: Product[], search: string) {
   const query = search.toLowerCase();
   return products.filter(
     (product) =>
-      product.name.toLowerCase().includes(query) ||
-      product.category.toLowerCase().includes(query)
+      (product.name || "").toLowerCase().includes(query) ||
+      (product.category || "").toLowerCase().includes(query)
   );
 }
 
@@ -70,8 +70,8 @@ export function addItemToSale(items: SaleItem[], product: Product, quantity: num
       productId,
       productName: product.name,
       quantity,
-      unitPrice: product.price,
-      subtotal: quantity * product.price,
+      unitPrice: product.salePrice,
+      subtotal: quantity * product.salePrice,
     },
   ];
 }

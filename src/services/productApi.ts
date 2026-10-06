@@ -3,6 +3,25 @@ import { apiFetch } from "@/services/api";
 
 const API_URL = import.meta.env.VITE_API_URL ?? 'https://localhost:44309';
 
+const isNewOrAbsolute = (img: string) =>
+  img.startsWith('data:') || img.startsWith('http://') || img.startsWith('https://');
+
+const imagePayload = (img?: string) => {
+  if (img === undefined || img === null) return undefined;
+  if (img === '') return '';
+  return isNewOrAbsolute(img) ? img : undefined; // caminho salvo (/uploads/...) não é reenviado
+};
+
+const readError = async (response: Response, fallback: string) => {
+  const text = await response.text();
+  try {
+    const json = JSON.parse(text);
+    return json?.message ?? json?.Message ?? json?.title ?? fallback;
+  } catch {
+    return text || fallback;
+  }
+};
+
 export const productApi = {
   async downloadReport(): Promise<{ blob: Blob; filename?: string }> {
     const response = await apiFetch(`${API_URL}/api/Product/report`);
@@ -54,31 +73,26 @@ export const productApi = {
     return data?.data || data?.Data || data?.products || data?.Products || [];
   },
 
-async create(p: Omit<Product, 'id'>): Promise<void> {
-  const response = await apiFetch(
-    `${API_URL}/api/Product`,
-    {
+  async create(p: Omit<Product, 'id'>): Promise<void> {
+    const response = await apiFetch(`${API_URL}/api/Product`, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         Name: p.name,
         Active: p.active !== false,
         CategoryId: p.categoryId,
         Description: p.description,
-        Image: p.image,
+        Image: imagePayload(p.image),
         SalePrice: p.salePrice,
         PurchasePrice: p.purchasePrice,
         Stock: p.stock,
       }),
-    }
-  );
+    });
 
     if (!response.ok) {
-      throw new Error('Erro ao criar produto');
+      throw new Error(await readError(response, 'Erro ao criar produto'));
     }
-  }, 
+  },
 
   async getById(id: number): Promise<any> {
     const response = await apiFetch(`${API_URL}/api/Product/${id}`);
@@ -91,28 +105,23 @@ async create(p: Omit<Product, 'id'>): Promise<void> {
   },
 
   async update(id: number, p: Omit<Product, 'id'>): Promise<void> {
-    const response = await apiFetch(
-      `${API_URL}/api/Product/${id}`,
-      {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          Name: p.name,
-          Active: p.active !== false,
-          CategoryId: p.categoryId,
-          Description: p.description,
-          Image: p.image,
-          SalePrice: p.salePrice,
-          PurchasePrice: p.purchasePrice,
-          Stock: p.stock,
-        }),
-      }
-    );
+    const response = await apiFetch(`${API_URL}/api/Product/${id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        Name: p.name,
+        Active: p.active !== false,
+        CategoryId: p.categoryId,
+        Description: p.description,
+        Image: imagePayload(p.image),
+        SalePrice: p.salePrice,
+        PurchasePrice: p.purchasePrice,
+        Stock: p.stock,
+      }),
+    });
 
     if (!response.ok) {
-      throw new Error('Erro ao atualizar produto');
+      throw new Error(await readError(response, 'Erro ao atualizar produto'));
     }
   },
 

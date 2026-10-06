@@ -11,6 +11,12 @@ import { useToast } from "@/hooks/use-toast";
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend,
 } from "recharts";
+import {
+  buildMonthlyData,
+  calculateLocalSummary,
+  filterExpenses,
+  mapFinancialSummary,
+} from "@/services/FinanceService";
 
 const CHART_COLORS = [
   "hsl(145, 42%, 52%)",
@@ -45,73 +51,46 @@ export default function Finance() {
 
   useEffect(() => {
     const [year, month] = summaryMonth.split('-').map(Number);
+    let active = true;
+
     expenseApi.getFinancial(year, month)
-      .then(summary => setFinancialSummary({
-        totalRevenue: Number(summary.totalRevenue ?? summary.TotalRevenue ?? summary.receitaTotal ?? summary.ReceitaTotal ?? summary.revenue ?? summary.Revenue ?? 0),
-        totalExpenses: Number(summary.totalExpenses ?? summary.TotalExpenses ?? summary.despesasCustos ?? summary.DespesasCustos ?? summary.expenses ?? summary.Expenses ?? 0),
-        totalCost: Number(summary.totalCost ?? summary.TotalCost ?? summary.cost ?? summary.Cost ?? 0),
-        profit: Number(summary.profit ?? summary.Profit ?? summary.lucroLiquido ?? summary.LucroLiquido ?? 0),
-      }))
-      .catch(error => console.error('Erro ao buscar resumo financeiro:', error));
-  }, [summaryMonth]);
-
-  const filteredExpenses = useMemo(() => {
-    const [year, month, day] = filterDate.split('-').map(Number);
-    const selectedDate = new Date(year, month - 1, day);
-    let startDate = new Date(selectedDate);
-    let endDate = new Date(selectedDate);
-
-    if (expenseFilter === 'month') {
-      startDate = new Date(year, month - 1, 1);
-      endDate = new Date(year, month, 1);
-    } else {
-      endDate.setDate(selectedDate.getDate() + 1);
-    }
-
-    startDate.setHours(0, 0, 0, 0);
-    endDate.setHours(0, 0, 0, 0);
-
-    return expenses
-      .filter(expense => {
-        const expenseDate = new Date(expense.date);
-        return expenseDate >= startDate && expenseDate < endDate;
+      .then(summary => {
+        if (active) {
+          setFinancialSummary(mapFinancialSummary(summary));
+        }
       })
-      .sort((a, b) => b.date.localeCompare(a.date));
-  }, [expenses, expenseFilter, filterDate]);
+      .catch(error => {
+        console.error('Erro ao buscar resumo financeiro:', error);
+        if (active) {
+          setFinancialSummary(calculateLocalSummary(sales, expenses, summaryMonth));
+        }
+      });
 
-  const monthlyData = useMemo(() => {
-    const months: Record<string, { receita: number; despesa: number }> = {};
-    const monthNames = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
+    return () => {
+      active = false;
+    };
+  }, [summaryMonth, sales, expenses]);
 
-    sales.forEach(s => {
-      const d = new Date(s.date);
-      const key = `${d.getFullYear()}-${d.getMonth()}`;
-      const label = `${monthNames[d.getMonth()]}/${d.getFullYear().toString().slice(2)}`;
-      if (!months[key]) months[key] = { receita: 0, despesa: 0 };
-      months[key].receita += s.total;
-      (months[key] as any).label = label;
-    });
+  const filteredExpenses = useMemo(
+    () => filterExpenses(expenses, expenseFilter, filterDate),
+    [expenses, expenseFilter, filterDate],
+  );
 
-    expenses.forEach(e => {
-      const d = new Date(e.date);
-      const key = `${d.getFullYear()}-${d.getMonth()}`;
-      const label = `${monthNames[d.getMonth()]}/${d.getFullYear().toString().slice(2)}`;
-      if (!months[key]) months[key] = { receita: 0, despesa: 0 };
-      months[key].despesa += e.amount;
-      (months[key] as any).label = label;
-    });
-
-    return Object.entries(months)
-      .sort(([a], [b]) => a.localeCompare(b))
-      .slice(-6)
-      .map(([, v]) => ({ name: (v as any).label, Receita: v.receita, Despesas: v.despesa }));
-  }, [sales, expenses]);
+  const monthlyData = useMemo(
+    () => buildMonthlyData(sales, expenses),
+    [sales, expenses],
+  );
 
   const handleAdd = async () => {
     if (!desc.trim() || amount <= 0) { toast({ title: "Preencha todos os campos", variant: "destructive" }); return; }
     try {
-      await addExpense({ date: new Date().toISOString(), description: desc, amount });
-      toast({ title: "Despesa adicionada! ✅" });
+      const now = new Date();
+      const localDate = new Date(now.getTime() - now.getTimezoneOffset() * 60000)
+        .toISOString()
+        .slice(0, 19);
+
+      await addExpense({ date: localDate, description: desc.trim(), amount });
+      toast({ title: "Despesa adicionada!" });
       setDesc(''); setAmount(0);
     } catch (error) {
       toast({

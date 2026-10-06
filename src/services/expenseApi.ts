@@ -17,7 +17,14 @@ export const expenseApi = {
       throw new Error('Erro ao buscar resumo financeiro');
     }
 
-    return response.json();
+    const data = await response.json();
+    return data?.data ??
+      data?.Data ??
+      data?.result ??
+      data?.Result ??
+      data?.summary ??
+      data?.Summary ??
+      data;
   },
 
   async getAll(): Promise<any[]> {
@@ -31,7 +38,13 @@ export const expenseApi = {
 
     if (Array.isArray(data)) return data;
 
-    return data?.data || data?.Data || data?.expenses || data?.Expenses || [];
+    return data?.data ??
+      data?.Data ??
+      data?.result ??
+      data?.Result ??
+      data?.expenses ??
+      data?.Expenses ??
+      [];
   },
 
   async create(expense: any): Promise<void> {

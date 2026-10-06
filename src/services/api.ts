@@ -1,4 +1,4 @@
-export const AUTH_TOKEN_KEY = "doceria_auth_token";
+  export const AUTH_TOKEN_KEY = "doceria_auth_token";
 
 export function setAuthToken(token: string) {
   localStorage.setItem(AUTH_TOKEN_KEY, token);
@@ -6,6 +6,8 @@ export function setAuthToken(token: string) {
 
 export function clearAuthToken() {
   localStorage.removeItem(AUTH_TOKEN_KEY);
+  localStorage.removeItem("doceria_session");
+  localStorage.removeItem("doceria_profile");
 }
 
 export async function apiFetch(
@@ -24,6 +26,15 @@ export async function apiFetch(
     ...options,
     headers,
   });
+
+  // Token expirado ou inválido
+  if (response.status === 401) {
+    clearAuthToken();
+
+    window.location.href = "/login";
+
+    throw new Error("Sessão expirada.");
+  }
 
   const contentType = response.headers.get("content-type");
 
@@ -64,3 +75,4 @@ export { productApi } from "./productApi";
 export { customerApi } from "./customerApi";
 export { salesApi } from "./salesApi";
 export { expenseApi } from "./expenseApi";
+

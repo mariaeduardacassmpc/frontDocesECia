@@ -85,7 +85,8 @@ const {
   const handlePaymentFilterChange = (value: string) => setFilterPayment(value as typeof filterPayment);
 
   function getCategoryName(categoryId: number): import("react").ReactNode {
-    throw new Error("Function not implemented.");
+    const product = products.find((item) => item.categoryId === categoryId);
+    return product?.category || "Sem categoria";
   }
 
   return (
@@ -581,44 +582,41 @@ const {
         </div>
 
         <div className="space-y-2 rounded-md bg-white p-3">
-          {editItems.length === 0 ? (
-            <p className="text-sm text-muted-foreground">
-              Nenhum produto na venda.
-            </p>
-          ) : (
-            editItems.map((item) => (
-              <div
-                key={item.productId}
-                className="flex items-center justify-between gap-2 text-sm"
-              >
-                <div className="min-w-0">
-                  <span className="font-medium">
-                    {item.productName}
-                  </span>
+        {editItems.map((item, index) => (
+          <div
+            key={`${item.productId}-${index}`}
+            className="flex items-center gap-3 rounded-md px-2 py-1.5 text-sm"
+          >
+            <div className="min-w-0 flex-1">
+              <div className="flex min-w-0 items-center gap-1">
+                <span className="truncate font-medium">
+                  {item.productName}
+                </span>
 
-                  <span className="ml-1 text-muted-foreground">
-                    x{item.quantity}
-                  </span>
-                </div>
-
-                <div className="flex shrink-0 items-center gap-2">
-                  <span className="font-semibold">
-                    {fmt(item.subtotal)}
-                  </span>
-
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-6 w-6 text-destructive"
-                    onClick={() => removeEditItem(item.productId)}
-                  >
-                    <Trash2 className="h-3 w-3" />
-                  </Button>
-                </div>
+                <span className="shrink-0 text-muted-foreground">
+                  x{item.quantity}
+                </span>
               </div>
-            ))
-          )}
+            </div>
 
+            <div className="flex shrink-0 items-center gap-2">
+              <span className="whitespace-nowrap font-semibold">
+                {fmt(item.subtotal)}
+              </span>
+
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                onClick={() => removeEditItem(index)}
+                className="h-8 w-8 shrink-0 p-0 text-destructive hover:bg-destructive/10 hover:text-destructive"
+                title="Remover produto"
+              >
+                <Trash2 className="h-4 w-4" />
+              </Button>
+            </div>
+          </div>
+        ))}
           <div className="flex justify-between border-t border-border pt-2 font-bold">
             <span>Total</span>
 

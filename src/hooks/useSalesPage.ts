@@ -201,9 +201,10 @@ export function useSalesPage() {
     );
   };
 
-  const removeEditItem = (productId: string) => {
+
+  const removeEditItem = (index: number) => {
     setEditItems((current) =>
-      removeItemFromSale(current, productId)
+      current.filter((_, i) => i !== index)
     );
   };
 
@@ -277,62 +278,44 @@ export function useSalesPage() {
   };
 
   const addEditItem = () => {
-    const product = products.find(
-      (item) => item.id === editSelectedProductId
-    );
+      const product = products.find(
+        (item) => item.id === editSelectedProductId
+      );
 
-    if (!product) {
-      toast({
-        title: "Selecione um produto",
-        variant: "destructive",
-      });
-      return;
-    }
+      if (!product) {
+        toast({
+          title: "Selecione um produto",
+          variant: "destructive",
+        });
+        return;
+      }
 
-    setEditItems((current) =>
-      addItemToSale(current, product, editQuantity)
-    );
+      setEditItems((current) =>
+        addItemToSale(current, product, editQuantity)
+      );
 
-    setEditProductSearch("");
-    setEditSelectedProductId(null);
-    setEditQuantity(1);
-    setShowEditProductList(false);
-  };
+      setEditProductSearch("");
+      setEditSelectedProductId(null);
+      setEditQuantity(1);
+      setShowEditProductList(false);
+    };
 
-  const saveSaleEdit = async () => {
-    if (!editingSale) {
-      return;
-    }
+    const saveSaleEdit = async () => {
+    if (!editingSale) return;
 
     const customer = saleCustomers.find(
-      (item) => item.id === editCustomerId
+      item => item.id === editCustomerId
     );
 
-    try {
-      await updateSale({
-        ...editingSale,
-        items: editItems,
-        total: editTotal,
-        customerId: customer?.id,
-        customerName: customer?.name,
-        paymentMethod: editPaymentMethod,
-      });
+    await updateSale({
+      ...editingSale,
+      items: editItems,
+      total: editTotal,
+      customerId: customer?.id,
+      customerName: customer?.name,
+      paymentMethod: editPaymentMethod,
+    });
 
-      toast({
-        title: "Venda atualizada!",
-      });
-
-      setEditDialogOpen(false);
-      setEditingSale(null);
-    } catch (error) {
-      toast({
-        title:
-          error instanceof Error
-            ? error.message
-            : "Erro ao atualizar venda",
-        variant: "destructive",
-      });
-    }
   };
 
   const handleDownloadReport = async () => {
