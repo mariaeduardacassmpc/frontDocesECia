@@ -91,19 +91,19 @@ const {
 
   return (
     <div className="w-full min-w-0 space-y-6 overflow-x-hidden">
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h1 className="text-3xl font-display font-bold">Vendas</h1>
+      <div className="flex min-w-0 flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div className="min-w-0">
+          <h1 className="text-2xl font-display font-bold sm:text-3xl">Vendas</h1>
           <p className="text-muted-foreground">Registre suas vendas do dia</p>
           <p className="text-sm font-medium text-secondary">
             {sales.length} {sales.length === 1 ? 'venda registrada' : 'vendas registradas'}
           </p>
         </div>
-        <div className="flex flex-wrap gap-2">
-          <Button variant="outline" onClick={handleDownloadReport} className="gap-2 bg-white text-black hover:bg-gray-100">
+        <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row">
+          <Button variant="outline" onClick={handleDownloadReport} className="w-full gap-2 bg-white text-black hover:bg-gray-100 sm:w-auto">
             <Download className="h-4 w-4" /> Relatório
           </Button>
-          <Button onClick={openNewSale} className="bg-primary text-primary-foreground hover:bg-primary/90 gap-2">
+          <Button onClick={openNewSale} className="w-full bg-primary text-primary-foreground hover:bg-primary/90 gap-2 sm:w-auto">
             <Plus className="h-4 w-4" /> Nova Venda
           </Button>
         </div>
@@ -195,8 +195,8 @@ const {
             {items.length > 0 && (
               <div className="space-y-2 rounded-lg bg-white p-3">
                 {items.map(item => (
-                  <div key={item.productId} className="flex items-center justify-between text-sm">
-                    <div>
+                  <div key={item.productId} className="flex min-w-0 items-center justify-between gap-2 text-sm">
+                    <div className="min-w-0 break-words">
                       <span className="font-medium">{item.productName}</span>
                       <span className="text-muted-foreground"> x{item.quantity}</span>
                     </div>
@@ -208,7 +208,7 @@ const {
                     </div>
                   </div>
                 ))}
-                <div className="border-t border-border pt-2 flex justify-between font-display font-bold text-lg">
+                <div className="flex justify-between gap-3 border-t border-border pt-2 font-display font-bold text-lg">
                   <span>Total</span><span className="text-secondary">{fmt(total)}</span>
                 </div>
               </div>
@@ -227,13 +227,13 @@ const {
               </Select>
             </div>
 
-            <DialogFooter>
-              <Button variant="outline" onClick={() => setNewSaleDialogOpen(false)}>
+            <DialogFooter className="flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+              <Button variant="outline" className="w-full sm:w-auto" onClick={() => setNewSaleDialogOpen(false)}>
                 Cancelar
               </Button>
               <Button
                 onClick={finalizeSale}
-                className="bg-secondary text-secondary-foreground hover:bg-secondary/90"
+                className="w-full bg-secondary text-secondary-foreground hover:bg-secondary/90 sm:w-auto"
                 disabled={items.length === 0}
               >
                 Salvar
@@ -244,15 +244,15 @@ const {
           </DialogContent>
         </Dialog>
 
-        <Card className="shadow-card border-0">
-          <CardHeader>
+        <Card className="min-w-0 shadow-card border-0">
+          <CardHeader className="p-4 sm:p-6">
             <CardTitle className="font-display flex items-center gap-2">
               <Filter className="h-5 w-5 text-secondary" /> Histórico
             </CardTitle>
           </CardHeader>
-          <CardContent>
-                        <div className="space-y-3 mb-10">
-                          <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-5">
+          <CardContent className="p-4 pt-0 sm:p-6 sm:pt-0">
+                        <div className="mb-10 space-y-3">
+                          <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-5">
                             <div>
                               <Label className="text-xs">Pagamento</Label>
                               <Select value={filterPayment} onValueChange={handlePaymentFilterChange}>
@@ -286,7 +286,7 @@ const {
                               <Label className="text-xs">Data Início</Label>
                               <Input
                                 type="date"
-                                className="h-9"
+                                className="h-9 w-full"
                                 value={filterDateStart}
                                 onChange={e => setFilterDateStart(e.target.value)}
                               />
@@ -341,9 +341,9 @@ const {
                   <tbody>
                     {sortedSales.map((sale) => (
                       <tr key={sale.id} className="border-t border-border align-top">
-                        <td className="p-3 text-muted-foreground">{new Date(sale.date).toLocaleString('pt-BR')}</td>
-                        <td className="p-3 font-medium">{sale.customerName || 'Cliente'}</td>
-                        <td className="p-3 text-muted-foreground">
+                        <td className="whitespace-nowrap p-3 text-muted-foreground">{new Date(sale.date).toLocaleString('pt-BR')}</td>
+                        <td className="max-w-[180px] break-words p-3 font-medium">{sale.customerName || 'Cliente'}</td>
+                        <td className="max-w-[260px] break-words p-3 text-muted-foreground">
                           {sale.items.slice(0, 2).map(item => item.productName).join(', ')}
                           {sale.items.length > 2 ? ` +${sale.items.length - 2}` : ''}
                         </td>
@@ -445,7 +445,7 @@ const {
                 ))
               )}
 
-              <div className="flex justify-between border-t border-border pt-2 font-bold">
+              <div className="flex justify-between gap-3 border-t border-border pt-2 font-bold">
                 <span>Total</span>
 
                 <span className="text-secondary">
@@ -648,9 +648,10 @@ const {
           </Select>
         </div>
 
-        <DialogFooter>
+        <DialogFooter className="flex-col-reverse gap-2 sm:flex-row sm:justify-end">
           <Button
             variant="outline"
+            className="w-full sm:w-auto"
             onClick={() => setEditDialogOpen(false)}
           >
             Cancelar
@@ -658,7 +659,7 @@ const {
 
           <Button
             onClick={saveSaleEdit}
-            className="bg-secondary text-secondary-foreground hover:bg-secondary/90"
+            className="w-full bg-secondary text-secondary-foreground hover:bg-secondary/90 sm:w-auto"
           >
             Salvar
           </Button>
